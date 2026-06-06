@@ -1,4 +1,4 @@
 streamlit
-flatlib
 pandas
 openpyxl
+pyswisseph
