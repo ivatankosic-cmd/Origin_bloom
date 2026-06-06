@@ -3,3 +3,4 @@ pandas
 openpyxl
 swisseph
 geopy
+pytz
