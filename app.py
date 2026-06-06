@@ -3,7 +3,7 @@ import pandas as pd
 import swisseph as swe
 from geopy.geocoders import Nominatim
 from timezonefinder import TimezoneFinder
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 
 # Stil za zelene okvire
@@ -31,9 +31,9 @@ grad = st.text_input("Grad rođenja")
 
 st.write("**Datum rođenja**")
 col_dan, col_mesec, col_godina = st.columns(3)
-dan = col_dan.number_input("Dan", min_value=1, max_value=31, value=15)
-mesec = col_mesec.number_input("Mesec", min_value=1, max_value=12, value=5)
-godina = col_godina.number_input("Godina", min_value=1900, max_value=2026, value=1990)
+dan = col_dan.number_input("Dan", min_value=1, max_value=31, value=9)
+mesec = col_mesec.number_input("Mesec", min_value=1, max_value=12, value=4)
+godina = col_godina.number_input("Godina", min_value=1900, max_value=2026, value=1988)
 
 st.write("**Vreme rođenja**")
 col_sat, col_min = st.columns(2)
@@ -48,27 +48,35 @@ if st.button("prikaži moje cveće"):
         st.error("Nisam pronašao lokaciju. Proveri unos.")
     else:
         try:
-            # 1. Automatsko pronalaženje vremenske zone na osnovu grada
-            tf = TimezoneFinder()
-            tz_str = tf.timezone_at(lng=location.longitude, lat=location.latitude)
-            
-            if tz_str is None:
-                tz_str = "UTC" # Osigurač u slučaju da zona nije nađena
-                
-            local_tz = pytz.timezone(tz_str)
-            
-            # 2. Pretvaranje unetog vremena u univerzalno UTC vreme (za astrologiju)
             lokalno_vreme = datetime(int(godina), int(mesec), int(dan), int(sati), int(minuti))
             
-            # Ako padne tačno u sat kada se menja vreme, 'is_dst=False' sprečava pucanje aplikacije
-            try:
-                lokalno_vreme_sa_zonom = local_tz.localize(lokalno_vreme, is_dst=None)
-            except (pytz.exceptions.AmbiguousTimeError, pytz.exceptions.NonExistentTimeError):
-                lokalno_vreme_sa_zonom = local_tz.localize(lokalno_vreme, is_dst=False)
-                
-            utc_vreme = lokalno_vreme_sa_zonom.astimezone(pytz.utc)
+            # PAMETNA DETEKCIJA ZA BALKAN (Zaobilazi greške u svetskim bazama za 80-te)
+            balkan_drzave = ['srbija', 'serbia', 'hrvatska', 'croatia', 'bosna', 'bosnia', 'crna gora', 'montenegro', 'makedonija', 'macedonia', 'slovenija', 'slovenia']
+            is_balkan = any(zemlja in drzava.lower() for zemlja in balkan_drzave)
             
-            # 3. Astrološka kalkulacija
+            if is_balkan:
+                offset = 1 # Standardno zimsko vreme (GMT+1)
+                if godina >= 1983:
+                    # Letnje vreme na Balkanu (GMT+2)
+                    if 4 <= mesec <= 9:
+                        offset = 2
+                    elif mesec == 3 and dan >= 25:
+                        offset = 2
+                    elif mesec == 10 and dan <= 25:
+                        offset = 2
+                utc_vreme = lokalno_vreme - timedelta(hours=offset)
+            else:
+                # Za ostatak sveta koristi globalnu mapu
+                tf = TimezoneFinder()
+                tz_str = tf.timezone_at(lng=location.longitude, lat=location.latitude)
+                if tz_str is None: tz_str = "UTC"
+                local_tz = pytz.timezone(tz_str)
+                try:
+                    utc_vreme = local_tz.localize(lokalno_vreme, is_dst=None).astimezone(pytz.utc)
+                except (pytz.exceptions.AmbiguousTimeError, pytz.exceptions.NonExistentTimeError):
+                    utc_vreme = local_tz.localize(lokalno_vreme, is_dst=False).astimezone(pytz.utc)
+
+            # Astrološka kalkulacija sa tačnim UTC vremenom
             jd = swe.julday(utc_vreme.year, utc_vreme.month, utc_vreme.day, utc_vreme.hour + utc_vreme.minute/60.0)
             
             pos_sunce = swe.calc_ut(jd, 0)[0][0]
