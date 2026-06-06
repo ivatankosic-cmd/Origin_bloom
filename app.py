@@ -3,7 +3,7 @@ import pandas as pd
 import swisseph as swe
 from geopy.geocoders import Nominatim
 from timezonefinder import TimezoneFinder
-from datetime import datetime, timedelta
+from datetime import datetime
 import pytz
 
 # Stil za zelene okvire
@@ -23,7 +23,12 @@ st.subheader("buket koji te opisuje")
 def load_excel():
     return pd.ExcelFile('astrologija_biljke.xlsx')
 
-xls = load_excel()
+try:
+    xls = load_excel()
+except Exception as e:
+    st.error("Excel fajl nije pronađen.")
+    st.stop()
+
 ZNACI = ['Ovan', 'Bik', 'Blizanci', 'Rak', 'Lav', 'Devica', 'Vaga', 'Škorpija', 'Strelac', 'Jarac', 'Vodolija', 'Ribe']
 
 drzava = st.text_input("Država rođenja")
@@ -31,9 +36,10 @@ grad = st.text_input("Grad rođenja")
 
 st.write("**Datum rođenja**")
 col_dan, col_mesec, col_godina = st.columns(3)
-dan = col_dan.number_input("Dan", min_value=1, max_value=31, value=9)
-mesec = col_mesec.number_input("Mesec", min_value=1, max_value=12, value=4)
-godina = col_godina.number_input("Godina", min_value=1900, max_value=2026, value=1988)
+# Postavljeno na neutralne vrednosti
+dan = col_dan.number_input("Dan", min_value=1, max_value=31, value=1)
+mesec = col_mesec.number_input("Mesec", min_value=1, max_value=12, value=1)
+godina = col_godina.number_input("Godina", min_value=1900, max_value=2026, value=1990)
 
 st.write("**Vreme rođenja**")
 col_sat, col_min = st.columns(2)
@@ -48,35 +54,23 @@ if st.button("prikaži moje cveće"):
         st.error("Nisam pronašao lokaciju. Proveri unos.")
     else:
         try:
+            # Automatsko nalaženje zone
+            tf = TimezoneFinder()
+            tz_str = tf.timezone_at(lng=location.longitude, lat=location.latitude)
+            if tz_str is None:
+                tz_str = "UTC"
+                
+            local_tz = pytz.timezone(tz_str)
             lokalno_vreme = datetime(int(godina), int(mesec), int(dan), int(sati), int(minuti))
             
-            # PAMETNA DETEKCIJA ZA BALKAN (Zaobilazi greške u svetskim bazama za 80-te)
-            balkan_drzave = ['srbija', 'serbia', 'hrvatska', 'croatia', 'bosna', 'bosnia', 'crna gora', 'montenegro', 'makedonija', 'macedonia', 'slovenija', 'slovenia']
-            is_balkan = any(zemlja in drzava.lower() for zemlja in balkan_drzave)
+            try:
+                lokalno_vreme_sa_zonom = local_tz.localize(lokalno_vreme, is_dst=None)
+            except (pytz.exceptions.AmbiguousTimeError, pytz.exceptions.NonExistentTimeError):
+                lokalno_vreme_sa_zonom = local_tz.localize(lokalno_vreme, is_dst=False)
+                
+            utc_vreme = lokalno_vreme_sa_zonom.astimezone(pytz.utc)
             
-            if is_balkan:
-                offset = 1 # Standardno zimsko vreme (GMT+1)
-                if godina >= 1983:
-                    # Letnje vreme na Balkanu (GMT+2)
-                    if 4 <= mesec <= 9:
-                        offset = 2
-                    elif mesec == 3 and dan >= 25:
-                        offset = 2
-                    elif mesec == 10 and dan <= 25:
-                        offset = 2
-                utc_vreme = lokalno_vreme - timedelta(hours=offset)
-            else:
-                # Za ostatak sveta koristi globalnu mapu
-                tf = TimezoneFinder()
-                tz_str = tf.timezone_at(lng=location.longitude, lat=location.latitude)
-                if tz_str is None: tz_str = "UTC"
-                local_tz = pytz.timezone(tz_str)
-                try:
-                    utc_vreme = local_tz.localize(lokalno_vreme, is_dst=None).astimezone(pytz.utc)
-                except (pytz.exceptions.AmbiguousTimeError, pytz.exceptions.NonExistentTimeError):
-                    utc_vreme = local_tz.localize(lokalno_vreme, is_dst=False).astimezone(pytz.utc)
-
-            # Astrološka kalkulacija sa tačnim UTC vremenom
+            # Računanje
             jd = swe.julday(utc_vreme.year, utc_vreme.month, utc_vreme.day, utc_vreme.hour + utc_vreme.minute/60.0)
             
             pos_sunce = swe.calc_ut(jd, 0)[0][0]
@@ -88,7 +82,6 @@ if st.button("prikaži moje cveće"):
             st.write(f"**Znak:** {znak_ime} | **Podznak:** {podznak_ime}")
             st.divider()
             
-            # Prikaz 5 planeta
             sve_planete = {0: 'Sunce', 1: 'Mesec', 2: 'Merkur', 3: 'Venera', 4: 'Mars'}
             for id, ime in sve_planete.items():
                 pos = swe.calc_ut(jd, id)[0][0]
