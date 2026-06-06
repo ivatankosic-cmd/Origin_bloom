@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 import swisseph as swe
 from geopy.geocoders import Nominatim
-from datetime import date
+from datetime import datetime
+import pytz
 
-# Stil za zelene okvire
 st.markdown("""
     <style>
     div[data-baseweb="input"] { border: 2px solid #A8C69F !important; }
@@ -14,7 +14,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Branding
 st.markdown("<p class='brand-name'>ethereal by iva</p>", unsafe_allow_html=True)
 st.title("🌸Origin Bloom")
 st.subheader("buket koji te opisuje")
@@ -22,17 +21,12 @@ st.subheader("buket koji te opisuje")
 def load_excel():
     return pd.ExcelFile('astrologija_biljke.xlsx')
 
-try:
-    xls = load_excel()
-except Exception as e:
-    st.error(f"Excel fajl nije učitan: {e}")
-    st.stop()
-
+xls = load_excel()
 ZNACI = ['Ovan', 'Bik', 'Blizanci', 'Rak', 'Lav', 'Devica', 'Vaga', 'Škorpija', 'Strelac', 'Jarac', 'Vodolija', 'Ribe']
 
 drzava = st.text_input("Država rođenja")
 grad = st.text_input("Grad rođenja")
-datum = st.date_input("Datum rođenja", min_value=date(1900, 1, 1))
+datum = st.date_input("Datum rođenja")
 col1, col2 = st.columns(2)
 sati = col1.number_input("Sati", 0, 23, 12)
 minuti = col2.number_input("Minuti", 0, 59, 0)
@@ -42,18 +36,20 @@ if st.button("prikaži moje cveće"):
     location = geolocator.geocode(f"{grad}, {drzava}")
     
     if not location:
-        st.error("Nisam pronašao grad i državu. Proveri unos.")
+        st.error("Nisam pronašao lokaciju.")
     else:
-        # KOREKCIJA VREMENA: Srbija leti (mart-oktobar) je GMT+2, zimi GMT+1
-        offset = 2 if 3 <= datum.month <= 10 else 1
-        utc_sati = sati - offset
-        jd = swe.julday(datum.year, datum.month, datum.day, utc_sati + minuti/60)
+        # PRECIZNA VREMENSKA ZONA (Srbija)
+        local_tz = pytz.timezone("Europe/Belgrade")
+        naive_dt = datetime(datum.year, datum.month, datum.day, sati, minuti)
+        local_dt = local_tz.localize(naive_dt, is_dst=None)
+        utc_dt = local_dt.astimezone(pytz.utc)
         
-        # Računanje znaka (Sunce) i podznaka (Ascendant)
+        jd = swe.julday(utc_dt.year, utc_dt.month, utc_dt.day, utc_dt.hour + utc_dt.minute/60)
+        
+        # Računanje
         pos_sunce = swe.calc_ut(jd, 0)[0][0]
         znak_ime = ZNACI[int(pos_sunce // 30)]
         
-        # Računanje podznaka
         cusps, ascmc = swe.houses(jd, location.latitude, location.longitude, b'P')
         podznak_ime = ZNACI[int(ascmc[0] // 30)]
         
@@ -61,13 +57,11 @@ if st.button("prikaži moje cveće"):
         st.write(f"**Znak:** {znak_ime} | **Podznak:** {podznak_ime}")
         st.divider()
         
-        # 5 planeta: Sunce(0), Mesec(1), Merkur(2), Venera(3), Mars(4)
+        # 5 planeta
         sve_planete = {0: 'Sunce', 1: 'Mesec', 2: 'Merkur', 3: 'Venera', 4: 'Mars'}
-        
         for id, ime in sve_planete.items():
             pos = swe.calc_ut(jd, id)[0][0]
             znak = ZNACI[int(pos // 30)]
-            
             sheet = next((s for s in xls.sheet_names if ime.lower() in s.lower()), None)
             if sheet:
                 df = pd.read_excel(xls, sheet_name=sheet, header=2)
