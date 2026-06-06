@@ -1,65 +1,40 @@
 import streamlit as st
 import pandas as pd
-from flatlib.datetime import Datetime
-from flatlib.geopos import GeoPos
-from flatlib.chart import Chart
-from flatlib import const
+import swisseph as swe
 
-# Prevodilac za nazive znakova (mora se podudarati sa tvojom tabelom)
-PREVOD = {
-    'Aries': 'Ovan', 'Taurus': 'Bik', 'Gemini': 'Blizanci', 'Cancer': 'Rak',
-    'Leo': 'Lav', 'Virgo': 'Devica', 'Libra': 'Vaga', 'Scorpio': 'Škorpija',
-    'Sagittarius': 'Strelac', 'Capricorn': 'Jarac', 'Aquarius': 'Vodolija', 'Pisces': 'Ribe'
-}
+# Prevodilac znakova (flatlib vraća engleske nazive, mi ćemo koristiti brojeve znaka 0-11)
+ZNACI = ['Ovan', 'Bik', 'Blizanci', 'Rak', 'Lav', 'Devica', 'Vaga', 'Škorpija', 'Strelac', 'Jarac', 'Vodolija', 'Ribe']
 
-st.set_page_config(page_title="Origin Bloom", page_icon="🌸")
-st.title("🌸 Origin Bloom - Natalni Recept")
+st.title("🌸 Origin Bloom")
 
 # Učitavanje baze
 @st.cache_data
 def load_data():
-    # Učitava Excel fajl
     return pd.ExcelFile('astrologija_biljke.xlsx')
 
-try:
-    xls = load_data()
-except:
-    st.error("Nisam pronašao 'astrologija_biljke.xlsx'. Proveri naziv fajla!")
-    st.stop()
+xls = load_data()
 
-with st.form("input_form"):
-    datum = st.date_input("Datum rođenja")
-    vreme = st.time_input("Vreme rođenja")
-    lat = st.number_input("Geografska širina (npr. 44.81)", format="%.2f")
-    lon = st.number_input("Geografska dužina (npr. 20.46)", format="%.2f")
-    submitted = st.form_submit_button("Generiši natalni recept")
+datum = st.date_input("Datum rođenja")
+vreme = st.time_input("Vreme rođenja")
+# Za sada ručno, možemo posle automatizovati
+lat = st.number_input("Geografska širina", 44.81)
+lon = st.number_input("Geografska dužina", 20.46)
 
-if submitted:
-    # 1. Proračun pozicija
-    dt = Datetime(datum.strftime("%Y/%m/%d"), vreme.strftime("%H:%M"), "+00:00")
-    chart = Chart(dt, GeoPos(lat, lon))
+if st.button("Generiši recept"):
+    # Računanje pozicije planeta
+    jd = swe.julday(datum.year, datum.month, datum.day, vreme.hour + vreme.minute/60)
     
-    planete_za_obradu = {
-        const.SUN: 'Sunce', const.MOON: 'Mesec', const.MERCURY: 'Merkur', 
-        const.VENUS: 'Venera', const.MARS: 'Mars', const.JUPITER: 'Jupiter', 
-        const.SATURN: 'Saturn', const.URANUS: 'Uran', const.NEPTUNE: 'Neptun', const.PLUTO: 'Pluton'
-    }
+    planete = {0: 'Sunce', 1: 'Mesec', 2: 'Merkur', 3: 'Venera', 4: 'Mars', 5: 'Jupiter', 6: 'Saturn', 7: 'Uran', 8: 'Neptun', 9: 'Pluton'}
     
-    st.success("### Tvoj Origin Bloom Recept:")
-    
-    for p_const, ime_planete in planete_za_obradu.items():
-        znak = PREVOD.get(chart.get(p_const).sign)
+    for id, ime in planete.items():
+        pos = swe.calc_ut(jd, id)[0][0]
+        znak_id = int(pos // 30)
+        znak_ime = ZNACI[znak_id]
         
-        # Traženje odgovarajućeg taba u Excelu
-        sheet_name = next((s for s in xls.sheet_names if ime_planete.lower() in s.lower()), None)
-        
-        if sheet_name:
-            df = pd.read_excel(xls, sheet_name=sheet_name, header=2) # header=2 jer podaci počinju od 3. reda
-            match = df[df['Znak'] == znak] 
-            
+        # Pronalaženje u Excelu
+        sheet = next((s for s in xls.sheet_names if ime.lower() in s.lower()), None)
+        if sheet:
+            df = pd.read_excel(xls, sheet_name=sheet, header=2)
+            match = df[df['Znak'] == znak_ime]
             if not match.empty:
-                cvet = match.iloc[0]['Biljka']
-                boja = match.iloc[0]['Boja']
-                poruka = match.iloc[0]['Poruka']
-                st.write(f"**{ime_planete} ({znak})**: {cvet} | *{boja}*")
-                st.caption(f"Poruka: {poruka}")
+                st.write(f"**{ime} ({znak_ime})**: {match.iloc[0]['Biljka']} | {match.iloc[0]['Boja']}")
