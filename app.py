@@ -8,9 +8,7 @@ ZNACI = ['Ovan', 'Bik', 'Blizanci', 'Rak', 'Lav', 'Devica', 'Vaga', 'Škorpija',
 st.title("🌸 Origin Bloom")
 
 # Učitavanje baze
-@st.cache_data
-def load_data():
-    return pd.ExcelFile('astrologija_biljke.xlsx')
+
 
 xls = load_data()
 
