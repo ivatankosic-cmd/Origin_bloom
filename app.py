@@ -4,14 +4,19 @@ import swisseph as swe
 from geopy.geocoders import Nominatim
 from datetime import date
 
+# Stil za zelene okvire
 st.markdown("""
     <style>
     div[data-baseweb="input"] { border: 2px solid #A8C69F !important; }
     div[data-baseweb="input"]:focus-within { border: 2px solid #4CAF50 !important; }
+    h1 { font-size: 28px !important; }
+    .brand-name { font-size: 16px; color: #777; letter-spacing: 2px; text-transform: uppercase; }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🌸Origin Bloom🌸")
+# Branding
+st.markdown("<p class='brand-name'>ethereal by iva</p>", unsafe_allow_html=True)
+st.title("🌸Origin Bloom")
 st.subheader("buket koji te opisuje")
 
 def load_excel():
@@ -25,7 +30,7 @@ except Exception as e:
 
 ZNACI = ['Ovan', 'Bik', 'Blizanci', 'Rak', 'Lav', 'Devica', 'Vaga', 'Škorpija', 'Strelac', 'Jarac', 'Vodolija', 'Ribe']
 
-# Unos lokacije
+# Unos
 drzava = st.text_input("Država rođenja")
 grad = st.text_input("Grad rođenja")
 datum = st.date_input("Datum rođenja", min_value=date(1900, 1, 1))
@@ -47,25 +52,21 @@ if st.button("prikaži moje cveće"):
         pos_sunce = swe.calc_ut(jd, 0)[0][0]
         znak_ime = ZNACI[int(pos_sunce // 30)]
         
-        # Računanje podznaka (Ascendant)
         cusps, ascmc = swe.houses(jd, location.latitude, location.longitude, b'P')
-        ascendant = ascmc[0]
-        podznak_ime = ZNACI[int(ascendant // 30)]
+        podznak_ime = ZNACI[int(ascmc[0] // 30)]
         
         st.success("### Tvoj lični pečat")
         st.write(f"**Znak:** {znak_ime} | **Podznak:** {podznak_ime}")
         st.divider()
         
-        sve_planete = {0: 'Sunce', 1: 'Mesec', 2: 'Merkur', 3: 'Venera', 4: 'Mars', 
-                       5: 'Jupiter', 6: 'Saturn', 7: 'Uran', 8: 'Neptun', 9: 'Pluton'}
-        
-        # Sortiranje po snazi (Sunce/Mesec prvi, pa ostale 3 najjače)
+        # Sortiranje i izbor 5 planeta
         rezultati = []
-        for id, ime in sve_planete.items():
+        for id, ime in {0: 'Sunce', 1: 'Mesec', 2: 'Merkur', 3: 'Venera', 4: 'Mars', 
+                        5: 'Jupiter', 6: 'Saturn', 7: 'Uran', 8: 'Neptun', 9: 'Pluton'}.items():
             pos = swe.calc_ut(jd, id)[0][0]
             rezultati.append({'id': id, 'ime': ime, 'znak': ZNACI[int(pos // 30)]})
         
-        # Uzimamo 5 najvažnijih planeta
+        # Uzimamo 5 najvažnijih (Sunce, Mesec + prve 3 po ID-u)
         top_5 = rezultati[:5]
         
         for item in top_5:
