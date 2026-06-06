@@ -2,8 +2,7 @@ import streamlit as st
 import pandas as pd
 import swisseph as swe
 from geopy.geocoders import Nominatim
-from datetime import date, datetime
-import pytz
+from datetime import datetime, timedelta
 
 # Stil za zelene okvire
 st.markdown("""
@@ -28,32 +27,33 @@ ZNACI = ['Ovan', 'Bik', 'Blizanci', 'Rak', 'Lav', 'Devica', 'Vaga', 'Škorpija',
 drzava = st.text_input("Država rođenja")
 grad = st.text_input("Grad rođenja")
 
-# DEFINICIJA DATUMA KOJA DOZVOLJAVA SVE OD 1900.
-datum = st.date_input("Datum rođenja", min_value=date(1900, 1, 1), value=date(1990, 1, 1))
+st.write("**Datum rođenja**")
+col_dan, col_mesec, col_godina = st.columns(3)
+dan = col_dan.number_input("Dan", min_value=1, max_value=31, value=15)
+mesec = col_mesec.number_input("Mesec", min_value=1, max_value=12, value=5)
+godina = col_godina.number_input("Godina", min_value=1900, max_value=2026, value=1990)
 
-col1, col2 = st.columns(2)
-sati = col1.number_input("Sati", 0, 23, 12)
-minuti = col2.number_input("Minuti", 0, 59, 0)
+st.write("**Vreme rođenja**")
+col_sat, col_min, col_gmt = st.columns(3)
+sati = col_sat.number_input("Sati", 0, 23, 12)
+minuti = col_min.number_input("Minuti", 0, 59, 0)
+gmt_offset = col_gmt.number_input("GMT Zona", min_value=-12, max_value=14, value=2, help="Srbija: 1 za zimsko, 2 za letnje vreme (kraj marta - kraj oktobra)")
 
 if st.button("prikaži moje cveće"):
-    if datum is None:
-        st.error("Molim te, unesi datum.")
+    geolocator = Nominatim(user_agent="origin_bloom_app")
+    location = geolocator.geocode(f"{grad}, {drzava}")
+    
+    if not location:
+        st.error("Nisam pronašao lokaciju. Proveri unos.")
     else:
-        geolocator = Nominatim(user_agent="origin_bloom_app")
-        location = geolocator.geocode(f"{grad}, {drzava}")
-        
-        if not location:
-            st.error("Nisam pronašao lokaciju.")
-        else:
-            # Precizna zona
-            local_tz = pytz.timezone("Europe/Belgrade")
-            naive_dt = datetime(datum.year, datum.month, datum.day, sati, minuti)
-            local_dt = local_tz.localize(naive_dt, is_dst=None)
-            utc_dt = local_dt.astimezone(pytz.utc)
+        try:
+            # 100% Precizna ručna kalkulacija u UTC vreme
+            lokalno_vreme = datetime(int(godina), int(mesec), int(dan), int(sati), int(minuti))
+            utc_vreme = lokalno_vreme - timedelta(hours=gmt_offset)
             
-            jd = swe.julday(utc_dt.year, utc_dt.month, utc_dt.day, utc_dt.hour + utc_dt.minute/60)
+            jd = swe.julday(utc_vreme.year, utc_vreme.month, utc_vreme.day, utc_vreme.hour + utc_vreme.minute/60.0)
             
-            # Kalkulacija
+            # Kalkulacija znaka i podznaka
             pos_sunce = swe.calc_ut(jd, 0)[0][0]
             znak_ime = ZNACI[int(pos_sunce // 30)]
             cusps, ascmc = swe.houses(jd, location.latitude, location.longitude, b'P')
@@ -63,6 +63,7 @@ if st.button("prikaži moje cveće"):
             st.write(f"**Znak:** {znak_ime} | **Podznak:** {podznak_ime}")
             st.divider()
             
+            # Prikaz 5 planeta
             sve_planete = {0: 'Sunce', 1: 'Mesec', 2: 'Merkur', 3: 'Venera', 4: 'Mars'}
             for id, ime in sve_planete.items():
                 pos = swe.calc_ut(jd, id)[0][0]
@@ -74,3 +75,5 @@ if st.button("prikaži moje cveće"):
                     match = df[df['Znak'] == znak]
                     if not match.empty:
                         st.write(f"**{ime} ({znak})**: {match.iloc[0]['Biljka']} | *{match.iloc[0]['Boja']}*")
+        except ValueError:
+            st.error("Uneti datum ne postoji (proveri broj dana u mesecu).")
