@@ -2,7 +2,9 @@ import streamlit as st
 import pandas as pd
 import swisseph as swe
 from geopy.geocoders import Nominatim
-from datetime import datetime, timedelta
+from timezonefinder import TimezoneFinder
+from datetime import datetime
+import pytz
 
 # Stil za zelene okvire
 st.markdown("""
@@ -34,10 +36,9 @@ mesec = col_mesec.number_input("Mesec", min_value=1, max_value=12, value=5)
 godina = col_godina.number_input("Godina", min_value=1900, max_value=2026, value=1990)
 
 st.write("**Vreme rođenja**")
-col_sat, col_min, col_gmt = st.columns(3)
+col_sat, col_min = st.columns(2)
 sati = col_sat.number_input("Sati", 0, 23, 12)
 minuti = col_min.number_input("Minuti", 0, 59, 0)
-gmt_offset = col_gmt.number_input("GMT Zona", min_value=-12, max_value=14, value=2, help="Srbija: 1 za zimsko, 2 za letnje vreme (kraj marta - kraj oktobra)")
 
 if st.button("prikaži moje cveće"):
     geolocator = Nominatim(user_agent="origin_bloom_app")
@@ -47,13 +48,29 @@ if st.button("prikaži moje cveće"):
         st.error("Nisam pronašao lokaciju. Proveri unos.")
     else:
         try:
-            # 100% Precizna ručna kalkulacija u UTC vreme
-            lokalno_vreme = datetime(int(godina), int(mesec), int(dan), int(sati), int(minuti))
-            utc_vreme = lokalno_vreme - timedelta(hours=gmt_offset)
+            # 1. Automatsko pronalaženje vremenske zone na osnovu grada
+            tf = TimezoneFinder()
+            tz_str = tf.timezone_at(lng=location.longitude, lat=location.latitude)
             
+            if tz_str is None:
+                tz_str = "UTC" # Osigurač u slučaju da zona nije nađena
+                
+            local_tz = pytz.timezone(tz_str)
+            
+            # 2. Pretvaranje unetog vremena u univerzalno UTC vreme (za astrologiju)
+            lokalno_vreme = datetime(int(godina), int(mesec), int(dan), int(sati), int(minuti))
+            
+            # Ako padne tačno u sat kada se menja vreme, 'is_dst=False' sprečava pucanje aplikacije
+            try:
+                lokalno_vreme_sa_zonom = local_tz.localize(lokalno_vreme, is_dst=None)
+            except (pytz.exceptions.AmbiguousTimeError, pytz.exceptions.NonExistentTimeError):
+                lokalno_vreme_sa_zonom = local_tz.localize(lokalno_vreme, is_dst=False)
+                
+            utc_vreme = lokalno_vreme_sa_zonom.astimezone(pytz.utc)
+            
+            # 3. Astrološka kalkulacija
             jd = swe.julday(utc_vreme.year, utc_vreme.month, utc_vreme.day, utc_vreme.hour + utc_vreme.minute/60.0)
             
-            # Kalkulacija znaka i podznaka
             pos_sunce = swe.calc_ut(jd, 0)[0][0]
             znak_ime = ZNACI[int(pos_sunce // 30)]
             cusps, ascmc = swe.houses(jd, location.latitude, location.longitude, b'P')
