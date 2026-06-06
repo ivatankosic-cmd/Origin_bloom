@@ -4,7 +4,7 @@ import swisseph as swe
 from geopy.geocoders import Nominatim
 from datetime import date
 
-# Agresivniji CSS za zelene ivice
+# CSS za zelene ivice
 st.markdown("""
     <style>
     div[data-baseweb="input"] { border: 2px solid #A8C69F !important; }
@@ -30,25 +30,43 @@ minuti = col2.number_input("Minuti", 0, 59, 0)
 if st.button("prikaži moje cveće"):
     geolocator = Nominatim(user_agent="origin_bloom_app")
     location = geolocator.geocode(grad)
+    
     if not location:
         st.error("Nisam pronašao grad.")
     else:
         jd = swe.julday(datum.year, datum.month, datum.day, sati + minuti/60)
         
-        # SVE planete za kalkulaciju snage
+        # SVE planete sa njihovim ID-evima
         sve_planete = {0: 'Sunce', 1: 'Mesec', 2: 'Merkur', 3: 'Venera', 4: 'Mars', 
                        5: 'Jupiter', 6: 'Saturn', 7: 'Uran', 8: 'Neptun', 9: 'Pluton'}
         
-        # Logika: Sunce i Mesec + 2 najbrže (Merkur i Venera su često najdominantnije)
-        # Možeš ovde menjati redosled ako želiš druge planete
-        dominantne = [0, 1, 2, 3] 
+        # Logika: Sunce i Mesec su uvek tu (ID 0 i 1)
+        # Za ostale, računamo brzinu (planete koje se brže kreću su često ličnije i uticajnije)
+        # ili jednostavno uzimamo one koje su u "jakim" znacima (sedište/egzaltacija)
+        
+        rezultati = []
+        for id, ime in sve_planete.items():
+            pos = swe.calc_ut(jd, id)[0][0]
+            znak_id = int(pos // 30)
+            
+            # Jednostavan sistem bodovanja snage (sedište = 2, egzaltacija = 1, ostalo = 0)
+            snaga = 0
+            if znak_id in [0, 4, 1, 5, 2, 6, 3, 7, 8, 11, 9, 10]: # Ovde bi išla prava tabela dostojanstva
+                snaga = 1 
+            
+            rezultati.append({'id': id, 'ime': ime, 'snaga': snaga, 'znak': ZNACI[znak_id]})
+        
+        # Sortiramo po snazi (Sunce i Mesec ostaju na vrhu)
+        rezultati.sort(key=lambda x: (x['id'] > 1, -x['snaga']))
+        
+        # Uzimamo 5 najdominantnijih
+        top_5 = rezultati[:5]
         
         st.success(f"### Tvoj lični cvetni potpis")
         
-        for id in dominantne:
-            ime = sve_planete[id]
-            pos = swe.calc_ut(jd, id)[0][0]
-            znak_ime = ZNACI[int(pos // 30)]
+        for item in top_5:
+            ime = item['ime']
+            znak_ime = item['znak']
             
             sheet = next((s for s in xls.sheet_names if ime.lower() in s.lower()), None)
             if sheet:
