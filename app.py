@@ -257,7 +257,7 @@ if st.button("Prikaži moj potpis"):
             """, unsafe_allow_html=True)
             
             # Centrirana CTA sekcija 
-            st.markdown("<div style='text-align: center; padding: 0 40px; margin-top: 40px; margin-bottom: 20px; font-size: 14px; color: #555; line-height: 1.6;'><b>Origin Bloom</b> je premium, personalizovana slika, ručno crtana na osnovu tvoje natalne karte.<br>Naručite vašu sliku na našoj Instagram strani.</div>", unsafe_allow_html=True)
+            st.markdown("<div style='text-align: center; padding: 0 40px; margin-top: 40px; margin-bottom: 20px; font-size: 14px; color: #555; line-height: 1.6;'><b>Origin Bloom</b> je premium, personalizovana slika, ručno crtana na osnovu vaše natalne karte.<br>Naručite vašu sliku na mojoj Instagram strani.</div>", unsafe_allow_html=True)
             
             st.link_button("🌸 Naruči svoju sliku na Instagramu", "https://instagram.com/etherealbyiva", use_container_width=True)
             
