@@ -5,3 +5,5 @@ swisseph
 geopy
 pytz
 timezonefinder
+gspread
+oauth2client
