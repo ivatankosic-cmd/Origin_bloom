@@ -364,7 +364,7 @@ if st.session_state.prikazano:
                             server.send_message(msg)
                             server.quit()
                             
-                            st.success("Hvala, tvoj zahtev je uspešno zabeležen! Bićete ubrzo kontaktirani radi finalizacije narudžbine i detalja oko uplate.")
+                            st.success("Hvala, tvoj zahtev je uspešno zabeležen! Bićete ubrzo kontaktirani radi finalizacije narudžbine.")
                         except Exception as e:
                             st.error("Došlo je do greške pri slanju maila. Molim te kontaktiraj me direktno preko Instagrama.")
                     else:
