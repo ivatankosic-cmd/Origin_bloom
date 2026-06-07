@@ -130,16 +130,29 @@ if st.session_state.prikazano:
                     st.markdown("<br>", unsafe_allow_html=True)
                     saglasnost_vizija = st.checkbox("Slažem se sa vizijom umetnice i kompoziciju prepuštam njenom autoritetu.")
                     saglasnost_vreme = st.checkbox("Razumem da proces ručne izrade traje 3 nedelje i da je svako delo unikatno.")
+                    
                     if st.form_submit_button("Pošalji zahtev za izradu"):
                         if ime_prezime.strip() and email.strip() and telefon.strip() and adresa.strip() and saglasnost_vizija and saglasnost_vreme:
                             poruka_mail = f"NOVA PORUDŽBINA - Origin Bloom\n\nIme: {ime_prezime}\nEmail: {email}\nTelefon: {telefon}\nAdresa: {adresa}\nNamena: {namena}\nZnak: {znak_ime} | Podznak: {podznak_ime}"
                             msg = MIMEText(poruka_mail)
                             msg['Subject'] = f'Nova porudzbina: {ime_prezime} (Origin Bloom)'
                             try:
+                                mail_adresa = st.secrets["EMAIL_USER"]
+                                mail_lozinka = st.secrets["EMAIL_PASS"]
+                                
+                                # OVE DVE LINIJE SU FALILE U PROŠLOM KODU
+                                msg['From'] = mail_adresa
+                                msg['To'] = mail_adresa
+                                
                                 server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-                                server.login(st.secrets["EMAIL_USER"], st.secrets["EMAIL_PASS"])
-                                server.send_message(msg); server.quit()
-                                st.session_state.uspesno_naruceno = True; st.rerun()
-                            except Exception as e: st.error("Došlo je do greške pri slanju maila. Proverite Secrets.")
-                        else: st.error("Molimo vas da popunite sva tekstualna polja i prihvatite oba uslova izrade.")
+                                server.login(mail_adresa, mail_lozinka)
+                                server.send_message(msg)
+                                server.quit()
+                                
+                                st.session_state.uspesno_naruceno = True
+                                st.rerun()
+                            except Exception as e: 
+                                st.error(f"Sistem je prijavio grešku pri slanju: {e}")
+                        else: 
+                            st.error("Molimo vas da popunite sva tekstualna polja i prihvatite oba uslova izrade.")
         except ValueError: st.error("Uneti datum ne postoji (proveri broj dana u mesecu).")
