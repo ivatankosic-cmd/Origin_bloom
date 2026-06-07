@@ -335,7 +335,7 @@ if st.button("Prikaži moj potpis"):
                 <p class='process-text'>Proces kreiranja ovakvog dela zahteva vreme, mir i slojevitu izgradnju akvarela uz korišćenje premium papira i specifičnih tehnika. Zbog mog posvećenog pristupa svakom unikatnom delu, rok za izradu tvog personalizovanog Origin Bloom originala je 3 nedelje.</p>
             </div>""", unsafe_allow_html=True)
             
-            st.markdown("<div class='cta-container'><b>Origin Bloom</b> je premium, personalizovana slika, ručno crtana na osnovu tvoje natalne karte.<br><br>Naručite vašu sliku na našoj Instagram strani.</div>", unsafe_allow_html=True)
+            st.markdown("<div class='cta-container'><b>Origin Bloom</b> je premium, personalizovana slika, ručno crtana na osnovu vaše natalne karte.<br><br>Naručite vašu sliku na mojoj Instagram strani.</div>", unsafe_allow_html=True)
             
             st.link_button("🌸 Naruči svoju sliku na Instagramu", "https://instagram.com/etherealbyiva", use_container_width=True)
             
