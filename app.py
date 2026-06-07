@@ -317,7 +317,7 @@ if st.button("Prikaži moj potpis"):
             </div>
             """, unsafe_allow_html=True)
             
-            st.markdown("<div class='cta-container'><b>Origin Bloom</b> je premium, personalizovana slika, ručno crtana na osnovu tvoje natalne karte.<br>Naručite vašu sliku na našoj Instagram strani.</div>", unsafe_allow_html=True)
+            st.markdown("<div class='cta-container'><b>Origin Bloom</b> je premium, personalizovana slika, ručno crtana na osnovu vaše natalne karte.<br>Naručite vašu sliku na mojoj Instagram strani.</div>", unsafe_allow_html=True)
             
             st.link_button("🌸 Naruči svoju sliku na Instagramu", "https://instagram.com/etherealbyiva", use_container_width=True)
             
