@@ -17,7 +17,6 @@ st.markdown("""
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
-    /* Topla pozadina nalik luksuznom papiru */
     .stApp {
         background-color: #FAF9F6; 
     }
@@ -33,7 +32,6 @@ st.markdown("""
         font-weight: 500;
     }
 
-    /* Stilizacija labela iznad polja za unos */
     label, .st-emotion-cache-1y0t1k8, .st-emotion-cache-1jbcvrx {
         font-family: 'Montserrat', sans-serif !important;
         font-size: 11px !important;
@@ -44,17 +42,16 @@ st.markdown("""
         padding-bottom: 5px;
     }
 
-    div[data-baseweb="input"] { 
+    div[data-baseweb="input"], div[data-baseweb="textarea"], div[data-baseweb="select"] { 
         border: none !important;
         border-bottom: 1px solid #e5e5e5 !important; 
         border-radius: 0px !important;
         background-color: transparent !important;
     }
-    div[data-baseweb="input"]:focus-within { 
+    div[data-baseweb="input"]:focus-within, div[data-baseweb="textarea"]:focus-within, div[data-baseweb="select"]:focus-within { 
         border-bottom: 1px solid #B89768 !important; 
     }
     
-    /* BRAND NAME I NASLOVI */
     .brand-name { 
         font-size: 12px; 
         color: #B89768; 
@@ -85,7 +82,6 @@ st.markdown("""
         margin: 0px auto 40px auto;
     }
 
-    /* Sekcija sa rezultatima - oštre ivice, suptilna senka */
     .result-section {
         background-color: #ffffff; 
         padding: 50px 40px;
@@ -152,10 +148,10 @@ st.markdown("""
         letter-spacing: 1px;
     }
 
-    /* Umetnički proces sekcija */
     .art-process {
         margin-top: 60px;
         padding: 0 20px;
+        margin-bottom: 40px;
     }
     .process-title {
         font-family: 'Playfair Display', serif;
@@ -173,7 +169,6 @@ st.markdown("""
         font-weight: 300;
     }
 
-    /* Standardno dugme (Prikaži potpis) */
     .stButton > button {
         width: 100%;
         background-color: transparent !important;
@@ -192,47 +187,6 @@ st.markdown("""
     .stButton > button:hover {
         background-color: #2c3e2e !important;
         color: white !important;
-    }
-    
-    /* CTA Kontejner - Izdvojen blok za naručivanje */
-    .cta-container {
-        text-align: center; 
-        padding: 35px 30px; 
-        margin-top: 50px; 
-        margin-bottom: 10px; 
-        background-color: #f4f1ea; 
-        border: 1px solid #e8e2d5;
-        font-size: 14px; 
-        color: #444; 
-        line-height: 1.8;
-        font-weight: 400;
-    }
-
-    /* Dugme za Instagram (Link Button) */
-    .stLinkButton > a {
-        width: 100%;
-        background-color: #2c3e2e !important;
-        color: #ffffff !important;
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 500;
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        padding: 15px;
-        border-radius: 0px;
-        border: none !important;
-        margin-top: 10px;
-        margin-bottom: 40px;
-        transition: all 0.4s ease;
-        box-shadow: 0px 5px 15px rgba(44, 62, 46, 0.2);
-        display: inline-block;
-        text-align: center;
-        text-decoration: none;
-    }
-    .stLinkButton > a:hover {
-        background-color: #B89768 !important;
-        color: white !important;
-        box-shadow: 0px 5px 15px rgba(184, 151, 104, 0.3);
     }
     </style>
 """, unsafe_allow_html=True)
@@ -253,6 +207,13 @@ except Exception as e:
 
 ZNACI = ['Ovan', 'Bik', 'Blizanci', 'Rak', 'Lav', 'Devica', 'Vaga', 'Škorpija', 'Strelac', 'Jarac', 'Vodolija', 'Ribe']
 
+# Pamćenje da li je pritisnuto dugme za prikaz potpisa
+if 'prikazano' not in st.session_state:
+    st.session_state.prikazano = False
+
+def prikazi_rezultate():
+    st.session_state.prikazano = True
+
 col_lok1, col_lok2 = st.columns(2)
 drzava = col_lok1.text_input("Država rođenja")
 grad = col_lok2.text_input("Grad rođenja")
@@ -270,7 +231,9 @@ col_sat, col_min = st.columns(2)
 sati = col_sat.number_input("Sati", 0, 23, 12)
 minuti = col_min.number_input("Minuti", 0, 59, 0)
 
-if st.button("Prikaži moj potpis"):
+st.button("Prikaži moj potpis", on_click=prikazi_rezultate)
+
+if st.session_state.prikazano:
     geolocator = Nominatim(user_agent="origin_bloom_app")
     location = geolocator.geocode(f"{grad}, {drzava}")
     
@@ -298,7 +261,6 @@ if st.button("Prikaži moj potpis"):
             cusps, ascmc = swe.houses(jd, location.latitude, location.longitude, b'P')
             podznak_ime = ZNACI[int(ascmc[0] // 30)]
             
-            # ISPRAVLJENO: Nema više praznih redova u HTML bloku!
             st.markdown(f"""<div class='result-section'>
                 <h2 class='result-title'>Tvoj Origin Bloom profil je kreiran.</h2>
                 <p class='result-subtitle'>Precizni podaci prevedeni su u tvoj jedinstveni botanički i koloritni potpis.</p>
@@ -327,7 +289,6 @@ if st.button("Prikaži moj potpis"):
             
             st.markdown("<p class='note-text'>Ovo je sirovi materijal tvog identiteta.<br>Iako ove boje i oblici na prvi pogled možda deluju nespojivo, njihov pravi estetski potencijal otkriva se tek kroz umetničku sintezu.</p></div>", unsafe_allow_html=True)
             
-            # ISPRAVLJENO: Nema više praznih redova u HTML bloku!
             st.markdown("""<div class='art-process'>
                 <h3 class='process-title'>Od koda do kompozicije</h3>
                 <p class='process-text'>Ovde se završava proračun i počinje umetnost. Na osnovu tvog koda, ručno osmišljavam kompoziciju, tražim savršen balans između dodeljenih nijansi i oblika. Kroz igru odnosa figure i pozadine, svaki element dobija svoj prostor, gradeći harmoničnu celinu.</p>
@@ -335,9 +296,30 @@ if st.button("Prikaži moj potpis"):
                 <p class='process-text'>Proces kreiranja ovakvog dela zahteva vreme, mir i slojevitu izgradnju akvarela uz korišćenje premium papira i specifičnih tehnika. Zbog mog posvećenog pristupa svakom unikatnom delu, rok za izradu tvog personalizovanog Origin Bloom originala je 3 nedelje.</p>
             </div>""", unsafe_allow_html=True)
             
-            st.markdown("<div class='cta-container'><b>Origin Bloom</b> je premium, personalizovana slika, ručno crtana na osnovu vaše natalne karte.<br><br>Naručite vašu sliku na mojoj Instagram strani.</div>", unsafe_allow_html=True)
-            
-            st.link_button("🌸 Naruči svoju sliku na Instagramu", "https://instagram.com/etherealbyiva", use_container_width=True)
+            # ----------- FORMA ZA NARUČIVANJE -----------
+            with st.form("forma_za_narucivanje", clear_on_submit=False):
+                st.markdown("<h3 class='process-title' style='margin-top: 10px; border-bottom: none;'>Naruči svoj Origin Bloom original</h3>", unsafe_allow_html=True)
+                
+                col_ime, col_email = st.columns(2)
+                ime_prezime = col_ime.text_input("Ime i prezime")
+                email = col_email.text_input("Email adresa")
+                
+                telefon = st.text_input("Broj telefona (potrebno za kurirsku službu)")
+                adresa = st.text_area("Puna adresa za dostavu")
+                namena = st.selectbox("Namena dela", ["Za moj prostor", "Poklon za godišnjicu", "Poklon za rođenje", "Drugo"])
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                saglasnost_vizija = st.checkbox("Slažem se sa vizijom umetnice i kompoziciju prepuštam njenom autoritetu.")
+                saglasnost_vreme = st.checkbox("Razumem da proces ručne izrade traje 3 nedelje i da je svako delo unikatno.")
+                
+                submit_narudzbina = st.form_submit_button("Pošalji zahtev za izradu")
+                
+                if submit_narudzbina:
+                    if ime_prezime.strip() and email.strip() and telefon.strip() and adresa.strip() and saglasnost_vizija and saglasnost_vreme:
+                        st.success("Hvala, tvoj zahtev je uspešno zabeležen! Uskoro ću te kontaktirati.")
+                    else:
+                        st.error("Molimo vas da popunite sva tekstualna polja i prihvatite oba uslova izrade.")
             
         except ValueError:
             st.error("Uneti datum ne postoji (proveri broj dana u mesecu).")
