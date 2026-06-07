@@ -239,12 +239,11 @@ if st.button("Prikaži moj potpis"):
             
             st.markdown("</div>", unsafe_allow_html=True) # Kraj result-section
             
-            # SEKCIJA 2: Umetnički proces i očekivanja
+         # SEKCIJA 2: Umetnički proces i očekivanja
             st.markdown("""
             <div class='art-process'>
                 <h3 class='process-title'>Od koda do kompozicije</h3>
                 <p class='process-text'>Ovde se završava proračun i počinje umetnost. Na osnovu tvog koda, ručno osmišljavam kompoziciju, tražim savršen balans između dodeljenih nijansi i oblika. Kroz igru odnosa figure i pozadine, svaki element dobija svoj prostor, gradeći harmoničnu celinu.</p>
-                
                 <h3 class='process-title'>Vreme izrade</h3>
                 <p class='process-text'>Proces kreiranja ovakvog dela zahteva vreme, mir i slojevitu izgradnju akvarela uz korišćenje premium papira i specifičnih tehnika. Zbog mog posvećenog pristupa svakom unikatnom delu, rok za izradu tvog personalizovanog Origin Bloom originala je 3 nedelje.</p>
             </div>
