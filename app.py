@@ -152,7 +152,7 @@ st.markdown("""
         letter-spacing: 1px;
     }
 
-    /* Umetnički proces sekcija - centrirano i prozračno */
+    /* Umetnički proces sekcija */
     .art-process {
         margin-top: 60px;
         padding: 0 20px;
@@ -173,8 +173,8 @@ st.markdown("""
         font-weight: 300;
     }
 
-    /* Dugme - elegant ghost button */
-    .stButton>button {
+    /* Standardno dugme (Prikaži potpis) */
+    .stButton > button {
         width: 100%;
         background-color: transparent !important;
         color: #2c3e2e !important;
@@ -189,20 +189,50 @@ st.markdown("""
         margin-top: 30px;
         transition: all 0.4s ease;
     }
-    .stButton>button:hover {
+    .stButton > button:hover {
         background-color: #2c3e2e !important;
         color: white !important;
     }
     
+    /* CTA Kontejner - Izdvojen blok za naručivanje */
     .cta-container {
         text-align: center; 
-        padding: 0 40px; 
+        padding: 35px 30px; 
         margin-top: 50px; 
-        margin-bottom: 20px; 
+        margin-bottom: 10px; 
+        background-color: #f4f1ea; 
+        border: 1px solid #e8e2d5;
         font-size: 14px; 
-        color: #555; 
+        color: #444; 
         line-height: 1.8;
-        font-weight: 300;
+        font-weight: 400;
+    }
+
+    /* Dugme za Instagram (Link Button) */
+    .stLinkButton > a {
+        width: 100%;
+        background-color: #2c3e2e !important;
+        color: #ffffff !important;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 500;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        padding: 15px;
+        border-radius: 0px;
+        border: none !important;
+        margin-top: 10px;
+        margin-bottom: 40px;
+        transition: all 0.4s ease;
+        box-shadow: 0px 5px 15px rgba(44, 62, 46, 0.2);
+        display: inline-block;
+        text-align: center;
+        text-decoration: none;
+    }
+    .stLinkButton > a:hover {
+        background-color: #B89768 !important;
+        color: white !important;
+        box-shadow: 0px 5px 15px rgba(184, 151, 104, 0.3);
     }
     </style>
 """, unsafe_allow_html=True)
@@ -268,14 +298,11 @@ if st.button("Prikaži moj potpis"):
             cusps, ascmc = swe.houses(jd, location.latitude, location.longitude, b'P')
             podznak_ime = ZNACI[int(ascmc[0] // 30)]
             
-            st.markdown(f"""
-            <div class='result-section'>
+            # ISPRAVLJENO: Nema više praznih redova u HTML bloku!
+            st.markdown(f"""<div class='result-section'>
                 <h2 class='result-title'>Tvoj Origin Bloom profil je kreiran.</h2>
                 <p class='result-subtitle'>Precizni podaci prevedeni su u tvoj jedinstveni botanički i koloritni potpis.</p>
-                
-                <div class='astrology-header'>
-                    Znak: <b>{znak_ime}</b> &nbsp;|&nbsp; Podznak: <b>{podznak_ime}</b>
-                </div>
+                <div class='astrology-header'>Znak: <b>{znak_ime}</b> &nbsp;|&nbsp; Podznak: <b>{podznak_ime}</b></div>
             """, unsafe_allow_html=True)
             
             sve_planete = {0: 'Sunce', 1: 'Mesec', 2: 'Merkur', 3: 'Venera', 4: 'Mars'}
@@ -290,13 +317,7 @@ if st.button("Prikaži moj potpis"):
                     df.columns = df.columns.str.strip()
                     match = df[df['Znak'] == znak]
                     if not match.empty:
-                        # Novi, vizuelno razdvojeni prikaz planeta i biljaka
-                        st.markdown(f"""
-                        <div class='planet-row'>
-                            <span class='planet-name'>{ime} ({znak})</span>
-                            <span class='planet-result'>{match.iloc[0]['Biljka']} | <span style='color:#B89768;'>{match.iloc[0]['Boja']}</span></span>
-                        </div>
-                        """, unsafe_allow_html=True)
+                        st.markdown(f"""<div class='planet-row'><span class='planet-name'>{ime} ({znak})</span><span class='planet-result'>{match.iloc[0]['Biljka']} | <span style='color:#B89768;'>{match.iloc[0]['Boja']}</span></span></div>""", unsafe_allow_html=True)
                         
                         if id == 0 and 'Poruka' in match.columns:
                             poruka_sunce = match.iloc[0]['Poruka']
@@ -304,20 +325,17 @@ if st.button("Prikaži moj potpis"):
             if poruka_sunce:
                 st.markdown(f"<div class='sun-message'>✨ {poruka_sunce}</div>", unsafe_allow_html=True)
             
-            st.markdown("<p class='note-text'>Ovo je sirovi materijal tvog identiteta.<br>Iako ove boje i oblici na prvi pogled možda deluju nespojivo, njihov pravi estetski potencijal otkriva se tek kroz umetničku sintezu.</p>", unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
+            st.markdown("<p class='note-text'>Ovo je sirovi materijal tvog identiteta.<br>Iako ove boje i oblici na prvi pogled možda deluju nespojivo, njihov pravi estetski potencijal otkriva se tek kroz umetničku sintezu.</p></div>", unsafe_allow_html=True)
             
-            st.markdown("""
-            <div class='art-process'>
+            # ISPRAVLJENO: Nema više praznih redova u HTML bloku!
+            st.markdown("""<div class='art-process'>
                 <h3 class='process-title'>Od koda do kompozicije</h3>
                 <p class='process-text'>Ovde se završava proračun i počinje umetnost. Na osnovu tvog koda, ručno osmišljavam kompoziciju, tražim savršen balans između dodeljenih nijansi i oblika. Kroz igru odnosa figure i pozadine, svaki element dobija svoj prostor, gradeći harmoničnu celinu.</p>
-                
                 <h3 class='process-title'>Vreme izrade</h3>
                 <p class='process-text'>Proces kreiranja ovakvog dela zahteva vreme, mir i slojevitu izgradnju akvarela uz korišćenje premium papira i specifičnih tehnika. Zbog mog posvećenog pristupa svakom unikatnom delu, rok za izradu tvog personalizovanog Origin Bloom originala je 3 nedelje.</p>
-            </div>
-            """, unsafe_allow_html=True)
+            </div>""", unsafe_allow_html=True)
             
-            st.markdown("<div class='cta-container'><b>Origin Bloom</b> je premium, personalizovana slika, ručno crtana na osnovu vaše natalne karte.<br>Naručite vašu sliku na mojoj Instagram strani.</div>", unsafe_allow_html=True)
+            st.markdown("<div class='cta-container'><b>Origin Bloom</b> je premium, personalizovana slika, ručno crtana na osnovu tvoje natalne karte.<br><br>Naručite vašu sliku na našoj Instagram strani.</div>", unsafe_allow_html=True)
             
             st.link_button("🌸 Naruči svoju sliku na Instagramu", "https://instagram.com/etherealbyiva", use_container_width=True)
             
