@@ -6,145 +6,203 @@ from timezonefinder import TimezoneFinder
 from datetime import datetime
 import pytz
 
-# Podešavanje cele stranice na "Wide" (opciono, ali daje više prostora) i sakrivanje default menija
 st.set_page_config(page_title="Origin Bloom", page_icon="🌸", layout="centered")
 
-# PREMIUM CSS STILIZACIJA SA ZLATNIM DETALJIMA
+# ULTRA-PREMIUM CSS STILIZACIJA
 st.markdown("""
     <style>
-    /* Uvoz luksuznih fontova sa Google-a */
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap');
 
-    /* Sakrivanje Streamlit menija i footera za čistiji izgled */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
-    /* Topla pozadina nalik premium papiru */
+    /* Topla pozadina nalik luksuznom papiru */
     .stApp {
-        background-color: #fbfaf6; 
+        background-color: #FAF9F6; 
     }
 
-    /* Glavni fontovi */
     html, body, [class*="css"]  {
         font-family: 'Montserrat', sans-serif;
-        color: #333333;
+        color: #2c2c2c;
     }
     
     h1, h2, h3, h4, h5, h6 {
         font-family: 'Playfair Display', serif !important;
-        color: #1a1a1a;
-        font-weight: 600;
+        color: #111111;
+        font-weight: 500;
     }
 
-    /* Stilizacija unosa (polja) - elegantne tanke linije umesto debelih okvira */
+    /* Stilizacija labela iznad polja za unos */
+    label, .st-emotion-cache-1y0t1k8, .st-emotion-cache-1jbcvrx {
+        font-family: 'Montserrat', sans-serif !important;
+        font-size: 11px !important;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #888888 !important;
+        font-weight: 400 !important;
+        padding-bottom: 5px;
+    }
+
     div[data-baseweb="input"] { 
         border: none !important;
-        border-bottom: 1px solid #dcdcdc !important; 
+        border-bottom: 1px solid #e5e5e5 !important; 
         border-radius: 0px !important;
         background-color: transparent !important;
     }
     div[data-baseweb="input"]:focus-within { 
-        border-bottom: 1px solid #B89768 !important; /* Zlatna linija kad se klikne na polje */
+        border-bottom: 1px solid #B89768 !important; 
     }
     
-    /* ZLATNI BRAND NAME */
+    /* BRAND NAME I NASLOVI */
     .brand-name { 
-        font-size: 14px; 
+        font-size: 12px; 
         color: #B89768; 
-        letter-spacing: 3px; 
+        letter-spacing: 4px; 
         text-transform: uppercase; 
         text-align: center;
-        margin-bottom: -10px;
+        margin-bottom: 5px;
         font-weight: 500;
     }
     .main-title {
         text-align: center;
-        font-size: 42px !important;
-        margin-bottom: 5px;
+        font-size: 46px !important;
+        margin-bottom: 0px;
+        letter-spacing: 1px;
     }
     .sub-title {
         text-align: center;
-        font-size: 18px;
+        font-size: 16px;
+        font-family: 'Playfair Display', serif;
         font-style: italic;
-        color: #666;
-        margin-bottom: 40px;
+        color: #777;
+        margin-bottom: 15px;
+    }
+    .gold-divider {
+        width: 40px;
+        height: 1px;
+        background-color: #B89768;
+        margin: 0px auto 40px auto;
     }
 
-    /* Sekcija sa rezultatima */
+    /* Sekcija sa rezultatima - oštre ivice, suptilna senka */
     .result-section {
-        background-color: #ffffff; /* Beli okvir na toploj pozadini daje dubinu */
-        padding: 40px 30px;
-        border-radius: 2px;
-        border: 1px solid #eaeaea;
-        margin-top: 30px;
-        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.03); /* Suptilna senka */
+        background-color: #ffffff; 
+        padding: 50px 40px;
+        border-radius: 0px;
+        border: 1px solid #f2f2f2;
+        margin-top: 40px;
+        box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.02); 
     }
     
-    .result-title { font-size: 24px; text-align: center; margin-bottom: 5px; }
-    .result-subtitle { font-size: 15px; text-align: center; color: #555; margin-bottom: 30px; }
+    .result-title { font-size: 26px; text-align: center; margin-bottom: 10px; }
+    .result-subtitle { font-size: 14px; text-align: center; color: #666; margin-bottom: 40px; line-height: 1.6; }
     
+    .astrology-header {
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #888;
+    }
+
     .planet-row {
-        font-size: 16px;
-        padding: 8px 0;
-        border-bottom: 1px solid #f0f0f0;
+        font-size: 15px;
+        padding: 12px 0;
+        border-bottom: 1px solid #f9f9f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .planet-name {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #999;
+        font-weight: 500;
+    }
+    .planet-result {
+        font-family: 'Playfair Display', serif;
+        font-style: italic;
+        font-size: 17px;
+        color: #222;
+        text-align: right;
     }
     
     .sun-message { 
         font-family: 'Playfair Display', serif;
-        font-size: 18px; 
+        font-size: 19px; 
         font-style: italic; 
         text-align: center; 
-        color: #B89768; /* Lična poruka u zlatnoj boji */
-        margin-top: 35px; 
-        margin-bottom: 15px;
+        color: #B89768; 
+        margin-top: 45px; 
+        margin-bottom: 25px;
+        line-height: 1.5;
     }
     
     .note-text {
-        font-size: 13px;
-        color: #777;
+        font-size: 11px;
+        color: #a0a0a0;
         text-align: center;
-        line-height: 1.6;
-        margin-top: 20px;
-        padding: 0 20px;
+        line-height: 1.8;
+        margin-top: 35px;
+        padding: 0 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
 
-    /* Umetnički proces sekcija */
+    /* Umetnički proces sekcija - centrirano i prozračno */
     .art-process {
-        margin-top: 50px;
+        margin-top: 60px;
         padding: 0 20px;
     }
     .process-title {
         font-family: 'Playfair Display', serif;
-        font-size: 22px;
-        border-bottom: 1px solid #B89768; /* Zlatna linija ispod naslova */
-        padding-bottom: 10px;
-        margin-top: 30px;
+        font-size: 20px;
+        text-align: center;
+        margin-top: 40px;
         margin-bottom: 15px;
+        color: #222;
     }
     .process-text {
-        font-size: 15px;
-        line-height: 1.8;
-        color: #444;
-        text-align: justify;
+        font-size: 14px;
+        line-height: 2;
+        color: #555;
+        text-align: center;
+        font-weight: 300;
     }
 
-    /* Dugme */
+    /* Dugme - elegant ghost button */
     .stButton>button {
         width: 100%;
-        background-color: #2c3e2e !important; /* Tamnozelena, elegantna */
-        color: white !important;
+        background-color: transparent !important;
+        color: #2c3e2e !important;
         font-family: 'Montserrat', sans-serif;
-        font-weight: 400;
-        letter-spacing: 1px;
-        padding: 12px;
+        font-weight: 500;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        padding: 15px;
         border-radius: 0px;
-        border: none;
-        margin-top: 20px;
-        transition: 0.3s;
+        border: 1px solid #2c3e2e !important;
+        margin-top: 30px;
+        transition: all 0.4s ease;
     }
     .stButton>button:hover {
-        background-color: #425c45 !important;
+        background-color: #2c3e2e !important;
+        color: white !important;
+    }
+    
+    .cta-container {
+        text-align: center; 
+        padding: 0 40px; 
+        margin-top: 50px; 
+        margin-bottom: 20px; 
+        font-size: 14px; 
+        color: #555; 
+        line-height: 1.8;
+        font-weight: 300;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -152,6 +210,7 @@ st.markdown("""
 st.markdown("<p class='brand-name'>ethereal by iva</p>", unsafe_allow_html=True)
 st.markdown("<h1 class='main-title'>Origin Bloom</h1>", unsafe_allow_html=True)
 st.markdown("<p class='sub-title'>buket koji te opisuje</p>", unsafe_allow_html=True)
+st.markdown("<div class='gold-divider'></div>", unsafe_allow_html=True)
 
 def load_excel():
     return pd.ExcelFile('astrologija_biljke.xlsx')
@@ -164,20 +223,19 @@ except Exception as e:
 
 ZNACI = ['Ovan', 'Bik', 'Blizanci', 'Rak', 'Lav', 'Devica', 'Vaga', 'Škorpija', 'Strelac', 'Jarac', 'Vodolija', 'Ribe']
 
-# Polja za unos
 col_lok1, col_lok2 = st.columns(2)
 drzava = col_lok1.text_input("Država rođenja")
 grad = col_lok2.text_input("Grad rođenja")
 
-st.write("") # Prazan prostor za bolju preglednost
-st.markdown("**Datum rođenja**")
+st.write("") 
+st.markdown("<div style='margin-bottom: -15px;'><label>Datum rođenja</label></div>", unsafe_allow_html=True)
 col_dan, col_mesec, col_godina = st.columns(3)
 dan = col_dan.number_input("Dan", min_value=1, max_value=31, value=1)
 mesec = col_mesec.number_input("Mesec", min_value=1, max_value=12, value=1)
 godina = col_godina.number_input("Godina", min_value=1900, max_value=2026, value=1990)
 
 st.write("")
-st.markdown("**Vreme rođenja**")
+st.markdown("<div style='margin-bottom: -15px;'><label>Vreme rođenja</label></div>", unsafe_allow_html=True)
 col_sat, col_min = st.columns(2)
 sati = col_sat.number_input("Sati", 0, 23, 12)
 minuti = col_min.number_input("Minuti", 0, 59, 0)
@@ -210,20 +268,19 @@ if st.button("Prikaži moj potpis"):
             cusps, ascmc = swe.houses(jd, location.latitude, location.longitude, b'P')
             podznak_ime = ZNACI[int(ascmc[0] // 30)]
             
-            # SEKCIJA 1: Prikaz rezultata (Premium kontejner)
             st.markdown(f"""
             <div class='result-section'>
                 <h2 class='result-title'>Tvoj Origin Bloom profil je kreiran.</h2>
                 <p class='result-subtitle'>Precizni podaci prevedeni su u tvoj jedinstveni botanički i koloritni potpis.</p>
-                <div style='text-align: center; margin-bottom: 20px; font-weight: 500;'>
-                    Znak: {znak_ime} &nbsp;|&nbsp; Podznak: {podznak_ime}
+                
+                <div class='astrology-header'>
+                    Znak: <b>{znak_ime}</b> &nbsp;|&nbsp; Podznak: <b>{podznak_ime}</b>
                 </div>
             """, unsafe_allow_html=True)
             
             sve_planete = {0: 'Sunce', 1: 'Mesec', 2: 'Merkur', 3: 'Venera', 4: 'Mars'}
             poruka_sunce = "" 
             
-            # Ispis planeta
             for id, ime in sve_planete.items():
                 pos = swe.calc_ut(jd, id)[0][0]
                 znak = ZNACI[int(pos // 30)]
@@ -233,31 +290,34 @@ if st.button("Prikaži moj potpis"):
                     df.columns = df.columns.str.strip()
                     match = df[df['Znak'] == znak]
                     if not match.empty:
-                        st.markdown(f"<div class='planet-row'><b>{ime} ({znak}):</b> {match.iloc[0]['Biljka']} | <i>{match.iloc[0]['Boja']}</i></div>", unsafe_allow_html=True)
+                        # Novi, vizuelno razdvojeni prikaz planeta i biljaka
+                        st.markdown(f"""
+                        <div class='planet-row'>
+                            <span class='planet-name'>{ime} ({znak})</span>
+                            <span class='planet-result'>{match.iloc[0]['Biljka']} | <span style='color:#B89768;'>{match.iloc[0]['Boja']}</span></span>
+                        </div>
+                        """, unsafe_allow_html=True)
                         
                         if id == 0 and 'Poruka' in match.columns:
                             poruka_sunce = match.iloc[0]['Poruka']
             
-            # Poruka za Sunce i Napomena
             if poruka_sunce:
                 st.markdown(f"<div class='sun-message'>✨ {poruka_sunce}</div>", unsafe_allow_html=True)
             
-            st.markdown("<p class='note-text'>Ovo je sirovi materijal tvog identiteta. Iako ove boje i oblici na prvi pogled možda deluju nespojivo, njihov pravi estetski potencijal otkriva se tek kroz umetničku sintezu.</p>", unsafe_allow_html=True)
+            st.markdown("<p class='note-text'>Ovo je sirovi materijal tvog identiteta.<br>Iako ove boje i oblici na prvi pogled možda deluju nespojivo, njihov pravi estetski potencijal otkriva se tek kroz umetničku sintezu.</p>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
             
-            st.markdown("</div>", unsafe_allow_html=True) # Kraj result-section
-            
-            # SEKCIJA 2: Umetnički proces i očekivanja (BEZ praznih redova u HTML-u)
             st.markdown("""
             <div class='art-process'>
                 <h3 class='process-title'>Od koda do kompozicije</h3>
                 <p class='process-text'>Ovde se završava proračun i počinje umetnost. Na osnovu tvog koda, ručno osmišljavam kompoziciju, tražim savršen balans između dodeljenih nijansi i oblika. Kroz igru odnosa figure i pozadine, svaki element dobija svoj prostor, gradeći harmoničnu celinu.</p>
+                
                 <h3 class='process-title'>Vreme izrade</h3>
                 <p class='process-text'>Proces kreiranja ovakvog dela zahteva vreme, mir i slojevitu izgradnju akvarela uz korišćenje premium papira i specifičnih tehnika. Zbog mog posvećenog pristupa svakom unikatnom delu, rok za izradu tvog personalizovanog Origin Bloom originala je 3 nedelje.</p>
             </div>
             """, unsafe_allow_html=True)
             
-            # Centrirana CTA sekcija 
-            st.markdown("<div style='text-align: center; padding: 0 40px; margin-top: 40px; margin-bottom: 20px; font-size: 14px; color: #555; line-height: 1.6;'><b>Origin Bloom</b> je premium, personalizovana slika, ručno crtana na osnovu vaše natalne karte.<br>Naručite vašu sliku na mojoj Instagram strani.</div>", unsafe_allow_html=True)
+            st.markdown("<div class='cta-container'><b>Origin Bloom</b> je premium, personalizovana slika, ručno crtana na osnovu tvoje natalne karte.<br>Naručite vašu sliku na našoj Instagram strani.</div>", unsafe_allow_html=True)
             
             st.link_button("🌸 Naruči svoju sliku na Instagramu", "https://instagram.com/etherealbyiva", use_container_width=True)
             
