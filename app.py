@@ -6,13 +6,15 @@ from timezonefinder import TimezoneFinder
 from datetime import datetime
 import pytz
 
-# Stil za zelene okvire
+# Stil za zelene okvire, tekst i dugmad
 st.markdown("""
     <style>
     div[data-baseweb="input"] { border: 2px solid #A8C69F !important; }
     div[data-baseweb="input"]:focus-within { border: 2px solid #4CAF50 !important; }
     h1 { font-size: 28px !important; }
     .brand-name { font-size: 16px; color: #777; letter-spacing: 2px; text-transform: uppercase; }
+    .sun-message { font-size: 17px; font-style: italic; text-align: center; color: #333; margin-top: 25px; padding: 10px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
+    .cta-text { font-size: 16px; text-align: center; color: #555; margin-top: 20px; margin-bottom: 15px; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -36,7 +38,6 @@ grad = st.text_input("Grad rođenja")
 
 st.write("**Datum rođenja**")
 col_dan, col_mesec, col_godina = st.columns(3)
-# Postavljeno na neutralne vrednosti
 dan = col_dan.number_input("Dan", min_value=1, max_value=31, value=1)
 mesec = col_mesec.number_input("Mesec", min_value=1, max_value=12, value=1)
 godina = col_godina.number_input("Godina", min_value=1900, max_value=2026, value=1990)
@@ -54,11 +55,9 @@ if st.button("prikaži moje cveće"):
         st.error("Nisam pronašao lokaciju. Proveri unos.")
     else:
         try:
-            # Automatsko nalaženje zone
             tf = TimezoneFinder()
             tz_str = tf.timezone_at(lng=location.longitude, lat=location.latitude)
-            if tz_str is None:
-                tz_str = "UTC"
+            if tz_str is None: tz_str = "UTC"
                 
             local_tz = pytz.timezone(tz_str)
             lokalno_vreme = datetime(int(godina), int(mesec), int(dan), int(sati), int(minuti))
@@ -69,8 +68,6 @@ if st.button("prikaži moje cveće"):
                 lokalno_vreme_sa_zonom = local_tz.localize(lokalno_vreme, is_dst=False)
                 
             utc_vreme = lokalno_vreme_sa_zonom.astimezone(pytz.utc)
-            
-            # Računanje
             jd = swe.julday(utc_vreme.year, utc_vreme.month, utc_vreme.day, utc_vreme.hour + utc_vreme.minute/60.0)
             
             pos_sunce = swe.calc_ut(jd, 0)[0][0]
@@ -83,6 +80,8 @@ if st.button("prikaži moje cveće"):
             st.divider()
             
             sve_planete = {0: 'Sunce', 1: 'Mesec', 2: 'Merkur', 3: 'Venera', 4: 'Mars'}
+            poruka_sunce = "" # Promenljiva u koju ćemo sačuvati poruku za Sunce
+            
             for id, ime in sve_planete.items():
                 pos = swe.calc_ut(jd, id)[0][0]
                 znak = ZNACI[int(pos // 30)]
@@ -92,6 +91,21 @@ if st.button("prikaži moje cveće"):
                     df.columns = df.columns.str.strip()
                     match = df[df['Znak'] == znak]
                     if not match.empty:
+                        # Ispisujemo samo Biljku i Boju
                         st.write(f"**{ime} ({znak})**: {match.iloc[0]['Biljka']} | *{match.iloc[0]['Boja']}*")
+                        
+                        # Ako je u pitanju Sunce, čuvamo poruku za kasnije
+                        if id == 0 and 'Poruka' in match.columns:
+                            poruka_sunce = match.iloc[0]['Poruka']
+            
+            # Prikazivanje poruke vezane samo za Sunce ispod izlistanog cveća
+            if poruka_sunce:
+                st.markdown(f"<div class='sun-message'>✨ {poruka_sunce}</div>", unsafe_allow_html=True)
+            
+            # --- DODATAK ZA NARUČIVANJE I INSTAGRAM ---
+            st.markdown("<p class='cta-text'><b>Origin Bloom</b> je premium, personalizovana slika, ručno crtana na osnovu tvoje natalne karte.<br>Naručite vašu sliku na našoj Instagram strani.</p>", unsafe_allow_html=True)
+            
+            st.link_button("🌸 Naruči svoju sliku na Instagramu", "https://instagram.com/etherealbyiva", use_container_width=True)
+            
         except ValueError:
             st.error("Uneti datum ne postoji (proveri broj dana u mesecu).")
