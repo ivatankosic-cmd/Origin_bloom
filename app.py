@@ -77,7 +77,7 @@ col_sat, col_min = st.columns(2)
 sati = col_sat.number_input("Sati", 0, 23, 12)
 minuti = col_min.number_input("Minuti", 0, 59, 0)
 
-st.button("Prikaži moj buket", on_click=prikazi_rezultate)
+st.button("Prikaži moj potpis", on_click=prikazi_rezultate)
 
 if st.session_state.prikazano:
     geolocator = Nominatim(user_agent="origin_bloom_app")
@@ -96,6 +96,7 @@ if st.session_state.prikazano:
             znak_ime = ZNACI[int(swe.calc_ut(jd, 0)[0][0] // 30)]
             podznak_ime = ZNACI[int(swe.houses(jd, location.latitude, location.longitude, b'P')[1][0] // 30)]
             
+            # 1. SEKCIJA: Rezultati
             rez_html = f"<div class='result-section'><h2 class='result-title'>Tvoj Origin Bloom profil je kreiran.</h2><p class='result-subtitle'>Precizni podaci prevedeni su u tvoj jedinstveni botanički i koloritni potpis.</p><div class='astrology-header'>Znak: <b>{znak_ime}</b> &nbsp;|&nbsp; Podznak: <b>{podznak_ime}</b></div>"
             poruka_sunce = "" 
             for id, ime in {0: 'Sunce', 1: 'Mesec', 2: 'Merkur', 3: 'Venera', 4: 'Mars'}.items():
@@ -113,10 +114,15 @@ if st.session_state.prikazano:
             rez_html += "<p class='note-text'>Ovo je sirovi materijal tvog identiteta.<br>Iako ove boje i oblici na prvi pogled možda deluju nespojivo, njihov pravi estetski potencijal otkriva se tek kroz umetničku sintezu.</p></div>"
             st.markdown(rez_html, unsafe_allow_html=True)
             
+            # 2. SEKCIJA: Umetnički proces i očekivanja
             st.markdown("<div class='art-process'><h3 class='process-title'>Od koda do kompozicije</h3><p class='process-text'>Ovde se završava proračun i počinje umetnost. Na osnovu tvog koda, ručno osmišljavam kompoziciju, tražim savršen balans između dodeljenih nijansi i oblika. Kroz igru odnosa figure i pozadine, svaki element dobija svoj prostor, gradeći harmoničnu celinu.</p><h3 class='process-title'>Vreme izrade</h3><p class='process-text'>Proces kreiranja ovakvog dela zahteva vreme, mir i slojevitu izgradnju akvarela uz korišćenje premium papira i specifičnih tehnika. Zbog mog posvećenog pristupa svakom unikatnom delu, rok za izradu tvog personalizovanog Origin Bloom originala je 3 nedelje.</p></div>", unsafe_allow_html=True)
             
+            # 2.5 NOVA SEKCIJA: Specifikacija ponude i cena
+            st.markdown("<div class='investment-section' style='padding: 0 20px; margin-bottom: 50px;'><h3 class='process-title'>Tvoja investicija u unikatno delo</h3><p class='process-text' style='text-align: center; font-weight: 500; color: #B89768; font-size: 16px; margin-bottom: 25px;'>Cena personalizovanog Origin Bloom originala iznosi 150 EUR (format 30x40 cm).</p><p class='process-text' style='margin-bottom: 15px; text-align: left;'>Ova investicija obuhvata:</p><ul style='font-size: 14px; line-height: 1.8; color: #555; font-weight: 300; padding-left: 20px; text-align: left;'><li style='margin-bottom: 8px;'><b>Detaljnu analizu</b> tvog botaničkog koda i osmišljavanje unikatne kompozicije.</li><li style='margin-bottom: 8px;'><b>Manuelni rad</b> uz korišćenje najkvalitetnijih pigmenata i premium akvarel papira.</li><li style='margin-bottom: 8px;'><b>Sertifikat autentičnosti</b>, kao garanciju originalnosti dela.</li><li style='margin-bottom: 8px;'><b>Beleške autora</b> – kratak, personalizovani zapis u kom ti otkrivam simboliku i estetske razloge iza odabranih elemenata na tvojoj slici.</li><li style='margin-bottom: 8px;'><b>Pažljivo i elegantno pakovanje</b>, spremno za bezbednu dostavu ili darivanje.</li></ul></div>", unsafe_allow_html=True)
+            
+            # 3. SEKCIJA: Forma za naručivanje i zahvalnica
             if st.session_state.uspesno_naruceno:
-                st.markdown("<div style='background-color: #ffffff; border: 1px solid #B89768; padding: 50px 30px; text-align: center; margin-top: 40px; box-shadow: 0px 10px 30px rgba(0,0,0,0.02);'><h2 style='color: #B89768; font-family: \"Playfair Display\", serif; font-size: 28px; margin-bottom: 15px;'>Hvala što ste naručili!</h2><p style='color: #444; font-size: 15px; line-height: 1.8; margin-bottom: 0;'>Vaš zahtev za izradu je uspešno zabeležen.<br>Bićete ubrzo kontaktirani radi finalizacije narudžbine.</p></div>", unsafe_allow_html=True)
+                st.markdown("<div style='background-color: #ffffff; border: 1px solid #B89768; padding: 50px 30px; text-align: center; margin-top: 40px; box-shadow: 0px 10px 30px rgba(0,0,0,0.02);'><h2 style='color: #B89768; font-family: \"Playfair Display\", serif; font-size: 28px; margin-bottom: 15px;'>Hvala što ste naručili!</h2><p style='color: #444; font-size: 15px; line-height: 1.8; margin-bottom: 0;'>Vaš zahtev za izradu je uspešno zabeležen.<br>Uskoro ćemo vas kontaktirati kako bismo finalizovali detalje.</p></div>", unsafe_allow_html=True)
             else:
                 st.markdown("<div class='cta-container'><b>Origin Bloom</b> je premium, personalizovana slika, ručno crtana na osnovu tvoje natalne karte.<br>Svaki potez je unikat, kreiran sa posvećenošću i pažnjom prema detaljima.<br><br><b>Broj komada na mesečnom nivou je strogo limitiran, jer se svaki primerak pažljivo i ručno stvara.</b></div>", unsafe_allow_html=True)
                 with st.form("forma_za_narucivanje", clear_on_submit=True):
@@ -133,14 +139,13 @@ if st.session_state.prikazano:
                     
                     if st.form_submit_button("Pošalji zahtev za izradu"):
                         if ime_prezime.strip() and email.strip() and telefon.strip() and adresa.strip() and saglasnost_vizija and saglasnost_vreme:
-                            poruka_mail = f"NOVA PORUDŽBINA - Origin Bloom\n\nIme: {ime_prezime}\nEmail: {email}\nTelefon: {telefon}\nAdresa: {adresa}\nNamena: {namena}\nZnak: {znak_ime} | Podznak: {podznak_ime}"
+                            poruka_mail = f"NOVA PORUDŽBINA - Origin Bloom\n\nIme: {ime_prezime}\nEmail: {email}\nTelefon: {telefon}\nAdresa: {adresa}\nNamena: {namena}\nZnak: {znak_ime} | Podznak: {podznak_ime}\nFormat: 30x40 cm | Cena: 150 EUR"
                             msg = MIMEText(poruka_mail)
                             msg['Subject'] = f'Nova porudzbina: {ime_prezime} (Origin Bloom)'
                             try:
                                 mail_adresa = st.secrets["EMAIL_USER"]
                                 mail_lozinka = st.secrets["EMAIL_PASS"]
                                 
-                                # OVE DVE LINIJE SU FALILE U PROŠLOM KODU
                                 msg['From'] = mail_adresa
                                 msg['To'] = mail_adresa
                                 
