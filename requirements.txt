@@ -1,7 +1,7 @@
 streamlit
 pandas
 openpyxl
-swisseph
+pyswisseph
 geopy
 pytz
 timezonefinder
