@@ -77,13 +77,20 @@ col_sat, col_min = st.columns(2)
 sati = col_sat.number_input("Sati", 0, 23, 12)
 minuti = col_min.number_input("Minuti", 0, 59, 0)
 
-st.button("Prikaži moj buket", on_click=prikazi_rezultate)
+st.button("Prikaži moj potpis", on_click=prikazi_rezultate)
 
 if st.session_state.prikazano:
     geolocator = Nominatim(user_agent="origin_bloom_app")
-    location = geolocator.geocode(f"{grad}, {drzava}")
+    location = None
+    
+    # DODATO: Bezbedno hvatanje lokacije sa dužim čekanjem (timeout=10)
+    try:
+        location = geolocator.geocode(f"{grad}, {drzava}", timeout=10)
+    except Exception as e:
+        st.error("Servis za mape trenutno obrađuje previše zahteva. Molim te, pokušaj ponovo za par sekundi.")
+    
     if not location:
-        st.error("Nisam pronašao lokaciju. Proveri unos grada i države.")
+        st.warning("Nisam pronašao lokaciju ili je servis preopterećen. Proveri unos grada i države i probaj ponovo.")
     else:
         try:
             tz_str = TimezoneFinder().timezone_at(lng=location.longitude, lat=location.latitude) or "UTC"
