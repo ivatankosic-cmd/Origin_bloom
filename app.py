@@ -78,7 +78,7 @@ col_sat, col_min = st.columns(2)
 sati = col_sat.number_input("Sati", 0, 23, 12)
 minuti = col_min.number_input("Minuti", 0, 59, 0)
 
-st.button("Prikaži moj potpis", on_click=prikazi_rezultate)
+st.button("Prikaži moj buket", on_click=prikazi_rezultate)
 
 if st.session_state.prikazano:
     # Potpuno unikatan User-Agent kako nas mape ne bi blokirale
