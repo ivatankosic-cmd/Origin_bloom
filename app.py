@@ -1,13 +1,13 @@
 import streamlit as st
 import pandas as pd
 import swisseph as swe
-from geopy.geocoders import Nominatim
+from geopy.geocoders import ArcGIS
 from timezonefinder import TimezoneFinder
 from datetime import datetime
 import pytz
 import smtplib
 from email.mime.text import MIMEText
-import time  # Dodato za pauziranje
+import time
 
 st.set_page_config(page_title="Origin Bloom", page_icon="🌸", layout="centered")
 
@@ -81,97 +81,7 @@ minuti = col_min.number_input("Minuti", 0, 59, 0)
 st.button("Prikaži moj buket", on_click=prikazi_rezultate)
 
 if st.session_state.prikazano:
-    # Potpuno unikatan User-Agent kako nas mape ne bi blokirale
-    geolocator = Nominatim(user_agent="ethereal_origin_bloom_iva_12345")
+    geolocator = ArcGIS()
     location = None
     
-    # Prvi pokušaj traženja lokacije
     try:
-        location = geolocator.geocode(f"{grad}, {drzava}", timeout=10)
-    except Exception:
-        # Ako prvi put pukne, sačekaj 2 sekunde pa probaj ponovo tajno
-        time.sleep(2)
-        try:
-            location = geolocator.geocode(f"{grad}, {drzava}", timeout=10)
-        except Exception:
-            pass # Pustićemo da prođe u sledeći blok i izbaci grešku
-    
-    if not location:
-        st.warning("Servis za mape trenutno obrađuje previše zahteva ili lokacija nije prepoznata. Molim te proveri unos (probaj da uneseš veći obližnji grad) i klikni dugme ponovo.")
-    else:
-        try:
-            tz_str = TimezoneFinder().timezone_at(lng=location.longitude, lat=location.latitude) or "UTC"
-            local_tz = pytz.timezone(tz_str)
-            lokalno_vreme = datetime(int(godina), int(mesec), int(dan), int(sati), int(minuti))
-            try: lokalno_vreme_sa_zonom = local_tz.localize(lokalno_vreme, is_dst=None)
-            except: lokalno_vreme_sa_zonom = local_tz.localize(lokalno_vreme, is_dst=False)
-            utc_vreme = lokalno_vreme_sa_zonom.astimezone(pytz.utc)
-            jd = swe.julday(utc_vreme.year, utc_vreme.month, utc_vreme.day, utc_vreme.hour + utc_vreme.minute/60.0)
-            znak_ime = ZNACI[int(swe.calc_ut(jd, 0)[0][0] // 30)]
-            podznak_ime = ZNACI[int(swe.houses(jd, location.latitude, location.longitude, b'P')[1][0] // 30)]
-            
-            # 1. SEKCIJA: Rezultati
-            rez_html = f"<div class='result-section'><h2 class='result-title'>Tvoj Origin Bloom profil je kreiran.</h2><p class='result-subtitle'>Precizni podaci prevedeni su u tvoj jedinstveni botanički i koloritni potpis.</p><div class='astrology-header'>Znak: <b>{znak_ime}</b> &nbsp;|&nbsp; Podznak: <b>{podznak_ime}</b></div>"
-            poruka_sunce = "" 
-            for id, ime in {0: 'Sunce', 1: 'Mesec', 2: 'Merkur', 3: 'Venera', 4: 'Mars'}.items():
-                znak = ZNACI[int(swe.calc_ut(jd, id)[0][0] // 30)]
-                sheet = next((s for s in xls.sheet_names if ime.lower() in s.lower()), None)
-                if sheet:
-                    df = pd.read_excel(xls, sheet_name=sheet, header=2)
-                    df.columns = df.columns.str.strip()
-                    match = df[df['Znak'].str.strip() == znak]
-                    if not match.empty:
-                        biljka = match.iloc[0]['Biljka']; boja = match.iloc[0]['Boja']
-                        rez_html += f"<div class='planet-row'><span class='planet-name'>{ime} ({znak})</span><span class='planet-result'>{biljka} | <span style='color:#B89768;'>{boja}</span></span></div>"
-                        if id == 0 and 'Poruka' in match.columns: poruka_sunce = match.iloc[0]['Poruka']
-            if poruka_sunce: rez_html += f"<div class='sun-message'>✨ {poruka_sunce}</div>"
-            rez_html += "<p class='note-text'>Ovo je sirovi materijal tvog identiteta.<br>Iako ove boje i oblici na prvi pogled možda deluju nespojivo, njihov pravi estetski potencijal otkriva se tek kroz umetničku sintezu.</p></div>"
-            st.markdown(rez_html, unsafe_allow_html=True)
-            
-            # 2. SEKCIJA: Umetnički proces i očekivanja
-            st.markdown("<div class='art-process'><h3 class='process-title'>Od koda do kompozicije</h3><p class='process-text'>Ovde se završava proračun i počinje umetnost. Na osnovu tvog koda, ručno osmišljavam kompoziciju, tražim savršen balans između dodeljenih nijansi i oblika. Kroz igru odnosa figure i pozadine, svaki element dobija svoj prostor, gradeći harmoničnu celinu.</p><h3 class='process-title'>Vreme izrade</h3><p class='process-text'>Proces kreiranja ovakvog dela zahteva vreme, mir i slojevitu izgradnju akvarela uz korišćenje premium papira i specifičnih tehnika. Zbog mog posvećenog pristupa svakom unikatnom delu, rok za izradu tvog personalizovanog Origin Bloom originala je 3 nedelje.</p></div>", unsafe_allow_html=True)
-            
-            # 2.5 NOVA SEKCIJA: Specifikacija ponude i cena
-            st.markdown("<div class='investment-section' style='padding: 0 20px; margin-bottom: 50px;'><h3 class='process-title'>Tvoja investicija u unikatno delo</h3><p class='process-text' style='text-align: center; font-weight: 500; color: #B89768; font-size: 16px; margin-bottom: 25px;'>Cena personalizovanog Origin Bloom originala iznosi 150 EUR (format 30x40 cm).</p><p class='process-text' style='margin-bottom: 15px; text-align: left;'>Ova investicija obuhvata:</p><ul style='font-size: 14px; line-height: 1.8; color: #555; font-weight: 300; padding-left: 20px; text-align: left;'><li style='margin-bottom: 8px;'><b>Detaljnu analizu</b> tvog botaničkog koda i osmišljavanje unikatne kompozicije.</li><li style='margin-bottom: 8px;'><b>Manuelni rad</b> uz korišćenje najkvalitetnijih pigmenata i premium akvarel papira.</li><li style='margin-bottom: 8px;'><b>Sertifikat autentičnosti</b>, kao garanciju originalnosti dela.</li><li style='margin-bottom: 8px;'><b>Beleške autora</b> – kratak, personalizovani zapis u kom ti otkrivam simboliku i estetske razloge iza odabranih elemenata na tvojoj slici.</li><li style='margin-bottom: 8px;'><b>Pažljivo i elegantno pakovanje</b>, spremno za bezbednu dostavu ili darivanje.</li></ul></div>", unsafe_allow_html=True)
-            
-            # 3. SEKCIJA: Forma za naručivanje i zahvalnica
-            if st.session_state.uspesno_naruceno:
-                st.markdown("<div style='background-color: #ffffff; border: 1px solid #B89768; padding: 50px 30px; text-align: center; margin-top: 40px; box-shadow: 0px 10px 30px rgba(0,0,0,0.02);'><h2 style='color: #B89768; font-family: \"Playfair Display\", serif; font-size: 28px; margin-bottom: 15px;'>Hvala što ste naručili!</h2><p style='color: #444; font-size: 15px; line-height: 1.8; margin-bottom: 0;'>Vaš zahtev za izradu je uspešno zabeležen.<br>Uskoro ćemo vas kontaktirati kako bismo finalizovali detalje.</p></div>", unsafe_allow_html=True)
-            else:
-                st.markdown("<div class='cta-container'><b>Origin Bloom</b> je premium, personalizovana slika, ručno crtana na osnovu tvoje natalne karte.<br>Svaki potez je unikat, kreiran sa posvećenošću i pažnjom prema detaljima.<br><br><b>Broj komada na mesečnom nivou je strogo limitiran, jer se svaki primerak pažljivo i ručno stvara.</b></div>", unsafe_allow_html=True)
-                with st.form("forma_za_narucivanje", clear_on_submit=True):
-                    st.markdown("<h3 class='process-title' style='margin-top: 10px; border-bottom: none;'>Naruči svoj Origin Bloom original</h3>", unsafe_allow_html=True)
-                    col_ime, col_email = st.columns(2)
-                    ime_prezime = col_ime.text_input("Ime i prezime")
-                    email = col_email.text_input("Email adresa")
-                    telefon = st.text_input("Broj telefona (potrebno za kurirsku službu)")
-                    adresa = st.text_area("Puna adresa za dostavu")
-                    namena = st.selectbox("Namena dela", ["Za moj prostor", "Poklon za godišnjicu", "Poklon za rođenje", "Drugo"])
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    saglasnost_vizija = st.checkbox("Slažem se sa vizijom umetnice i kompoziciju prepuštam njenom autoritetu.")
-                    saglasnost_vreme = st.checkbox("Razumem da proces ručne izrade traje 3 nedelje i da je svako delo unikatno.")
-                    
-                    if st.form_submit_button("Pošalji zahtev za izradu"):
-                        if ime_prezime.strip() and email.strip() and telefon.strip() and adresa.strip() and saglasnost_vizija and saglasnost_vreme:
-                            poruka_mail = f"NOVA PORUDŽBINA - Origin Bloom\n\nIme: {ime_prezime}\nEmail: {email}\nTelefon: {telefon}\nAdresa: {adresa}\nNamena: {namena}\nZnak: {znak_ime} | Podznak: {podznak_ime}\nFormat: 30x40 cm | Cena: 150 EUR"
-                            msg = MIMEText(poruka_mail)
-                            msg['Subject'] = f'Nova porudzbina: {ime_prezime} (Origin Bloom)'
-                            try:
-                                mail_adresa = st.secrets["EMAIL_USER"]
-                                mail_lozinka = st.secrets["EMAIL_PASS"]
-                                
-                                msg['From'] = mail_adresa
-                                msg['To'] = mail_adresa
-                                
-                                server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-                                server.login(mail_adresa, mail_lozinka)
-                                server.send_message(msg)
-                                server.quit()
-                                
-                                st.session_state.uspesno_naruceno = True
-                                st.rerun()
-                            except Exception as e: 
-                                st.error(f"Sistem je prijavio grešku pri slanju: {e}")
-                        else: 
-                            st.error("Molimo vas da popunite sva tekstualna polja i prihvatite oba uslova izrade.")
-        except ValueError: st.error("Uneti datum ne postoji (proveri broj dana u mesecu).")
