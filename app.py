@@ -11,6 +11,7 @@ import time
 
 st.set_page_config(page_title="Origin Bloom", page_icon="🌸", layout="centered")
 
+# CSS blok koji je sada siguran od grešaka
 css_kod = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap');
@@ -25,6 +26,8 @@ h1, h2, h3 {font-family: 'Playfair Display', serif !important; color: #111111;}
 .result-section { background-color: #ffffff; padding: 40px; border: 1px solid #f2f2f2; margin-top: 40px;}
 .planet-row { padding: 10px 0; border-bottom: 1px solid #f9f9f9; display: flex; justify-content: space-between;}
 .stButton > button { width: 100%; border: 1px solid #2c3e2e !important; padding: 15px; color: #2c3e2e; text-transform: uppercase; letter-spacing: 2px;}
+.process-title { font-family: 'Playfair Display', serif; font-size: 20px; text-align: center; margin-top: 40px; color: #222;}
+.process-text { font-size: 14px; line-height: 1.8; color: #555; text-align: center;}
 </style>
 """
 st.markdown(css_kod, unsafe_allow_html=True)
@@ -34,14 +37,10 @@ st.markdown("<h1 class='main-title'>Origin Bloom</h1>", unsafe_allow_html=True)
 st.markdown("<p class='sub-title'>buket koji te opisuje</p>", unsafe_allow_html=True)
 st.markdown("<div class='gold-divider'></div>", unsafe_allow_html=True)
 
-if 'prikazano' not in st.session_state:
-    st.session_state.prikazano = False
+if 'prikazano' not in st.session_state: st.session_state.prikazano = False
+if 'uspesno_naruceno' not in st.session_state: st.session_state.uspesno_naruceno = False
 
-if 'uspesno_naruceno' not in st.session_state:
-    st.session_state.uspesno_naruceno = False
-
-def prikazi_rezultate():
-    st.session_state.prikazano = True
+def prikazi_rezultate(): st.session_state.prikazano = True
 
 ZNACI = ['Ovan', 'Bik', 'Blizanci', 'Rak', 'Lav', 'Devica', 'Vaga', 'Škorpija', 'Strelac', 'Jarac', 'Vodolija', 'Ribe']
 
@@ -76,31 +75,26 @@ if st.session_state.prikazano:
         tz_str = TimezoneFinder().timezone_at(lng=location.longitude, lat=location.latitude) or "UTC"
         local_tz = pytz.timezone(tz_str)
         lokalno_vreme = datetime(int(godina), int(mesec), int(dan), int(sati), int(minuti))
-        
-        try:
-            lokalno_vreme_sa_zonom = local_tz.localize(lokalno_vreme, is_dst=None)
-        except Exception:
-            lokalno_vreme_sa_zonom = local_tz.localize(lokalno_vreme, is_dst=False)
-            
-        utc_vreme = lokalno_vreme_sa_zonom.astimezone(pytz.utc)
+        utc_vreme = local_tz.localize(lokalno_vreme, is_dst=False).astimezone(pytz.utc)
         jd = swe.julday(utc_vreme.year, utc_vreme.month, utc_vreme.day, utc_vreme.hour + utc_vreme.minute/60.0)
         znak_ime = ZNACI[int(swe.calc_ut(jd, 0)[0][0] // 30)]
         podznak_ime = ZNACI[int(swe.houses(jd, location.latitude, location.longitude, b'P')[1][0] // 30)]
         
         st.markdown(f"### Znak: {znak_ime} | Podznak: {podznak_ime}")
-        
         for id, ime in {0: 'Sunce', 1: 'Mesec', 2: 'Merkur', 3: 'Venera', 4: 'Mars'}.items():
             znak = ZNACI[int(swe.calc_ut(jd, id)[0][0] // 30)]
             sheet = next((s for s in xls.sheet_names if ime.lower() in s.lower()), None)
             if sheet:
                 df = pd.read_excel(xls, sheet_name=sheet, header=2)
-                df.columns = df.columns.str.strip()
                 match = df[df['Znak'].str.strip() == znak]
                 if not match.empty:
                     st.write(f"{ime} ({znak}): {match.iloc[0]['Biljka']} | {match.iloc[0]['Boja']}")
 
+        st.markdown("<h3 class='process-title'>Tvoja investicija u unikatno delo</h3>", unsafe_allow_html=True)
+        st.markdown("<p class='process-text'>Cena: 150 EUR (format 30x40 cm). Obuhvata analizu, manuelni rad, sertifikat, beleške autora i elegantno pakovanje.</p>", unsafe_allow_html=True)
+
         if st.session_state.uspesno_naruceno:
-            st.success("Hvala! Uskoro te kontaktiramo.")
+            st.success("Hvala! Uskoro te kontaktiramo radi finalizacije.")
         else:
             with st.form("forma"):
                 ime = st.text_input("Ime i prezime")
