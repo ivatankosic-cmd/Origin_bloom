@@ -40,48 +40,4 @@ div[data-baseweb="input"]:focus-within, div[data-baseweb="textarea"]:focus-withi
 .cta-container { text-align: center; padding: 35px 30px; margin-top: 50px; font-size: 14px; color: #444; line-height: 1.8;}
 .stButton > button { width: 100%; background-color: transparent !important; color: #2c3e2e !important; font-family: 'Montserrat', sans-serif; font-weight: 500; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; padding: 15px; border: 1px solid #2c3e2e !important; margin-top: 30px; transition: all 0.4s ease;}
 .stButton > button:hover { background-color: #2c3e2e !important; color: white !important;}
-.stFormSubmitButton > button { width: 100%; background-color: #111111 !important; color: #B89768 !important; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 3px; padding: 18px; border: 1px solid #B89768 !important; margin-top: 20px; transition: all 0.4s ease;}
-.stFormSubmitButton > button:hover { background-color: #B89768 !important; color: #111111 !important; border: 1px solid #111111 !important;}
-</style>
-"""
-st.markdown(css_kod, unsafe_allow_html=True)
-
-st.markdown("<p class='brand-name'>ethereal by iva</p>", unsafe_allow_html=True)
-st.markdown("<h1 class='main-title'>Origin Bloom</h1>", unsafe_allow_html=True)
-st.markdown("<p class='sub-title'>buket koji te opisuje</p>", unsafe_allow_html=True)
-st.markdown("<div class='gold-divider'></div>", unsafe_allow_html=True)
-
-if 'prikazano' not in st.session_state: st.session_state.prikazano = False
-if 'uspesno_naruceno' not in st.session_state: st.session_state.uspesno_naruceno = False
-
-def prikazi_rezultate(): st.session_state.prikazano = True
-
-ZNACI = ['Ovan', 'Bik', 'Blizanci', 'Rak', 'Lav', 'Devica', 'Vaga', 'Škorpija', 'Strelac', 'Jarac', 'Vodolija', 'Ribe']
-
-try: xls = pd.ExcelFile('astrologija_biljke.xlsx')
-except Exception: st.error("Excel fajl nije pronađen."); st.stop()
-
-col_lok1, col_lok2 = st.columns(2)
-drzava = col_lok1.text_input("Država rođenja")
-grad = col_lok2.text_input("Grad rođenja")
-
-st.write("") 
-st.markdown("<div style='margin-bottom: -15px;'><label>Datum rođenja</label></div>", unsafe_allow_html=True)
-col_dan, col_mesec, col_godina = st.columns(3)
-dan = col_dan.number_input("Dan", 1, 31, 1)
-mesec = col_mesec.number_input("Mesec", 1, 12, 1)
-godina = col_godina.number_input("Godina", 1900, 2026, 1990)
-
-st.write("")
-st.markdown("<div style='margin-bottom: -15px;'><label>Vreme rođenja</label></div>", unsafe_allow_html=True)
-col_sat, col_min = st.columns(2)
-sati = col_sat.number_input("Sati", 0, 23, 12)
-minuti = col_min.number_input("Minuti", 0, 59, 0)
-
-st.button("Prikaži moj buket", on_click=prikazi_rezultate)
-
-if st.session_state.prikazano:
-    geolocator = ArcGIS()
-    location = None
-    
-    try:
+.stFormSubmitButton > button { width: 100%; background-color: #111111 !important; color: #B89768 !important; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 3px; padding: 18px; border: 1px solid #B
